@@ -47,9 +47,11 @@ PID myPID(&Input, &Output, &Setpoint,3,3,.2, DIRECT); // BALDOR #2
 // pin 19 - SCL pin for I2C communication
 // pin 20 - PWM output
 
+
 int mspeed;
 float vout;
 float pressure;
+
 
 // Pin assignments
 const int PrePin = A7;          // Pressure sensor pin
@@ -59,6 +61,7 @@ const int inPin = 17;           // Read command from mainboard
 //const int SDAPin = 18;          // SDA pin for I2C
 //const int SCLPin = 19;          // SCL pin for I2C
 const int PWMPin = 20;          // PWM output to motor control board
+
 
 const int PreReadings = 1000;    // 1000 Average 5s pressure sensor for PID
 const int OutReadings = 5;      // 5 Average 5s PID output to control pump
@@ -78,13 +81,25 @@ int pumpspeed = 0;
 unsigned long TimeCount = 0;    // counting time step
 
 //I2C Commands
-int 0xAA
+int single_start = 0xAA;
+int start_avg2 = 0xAC;
+int start_avg4 = 0xAD;
+int start_avg8 = 0xAE;
+int start_avg16 = 0xAF;
+
+
+//I2C address info
+int PM_slave_addr = 41;
+
+
+
 
 void setup(){
   analogWriteFrequency(20, 488); // pwm frequenc. default = 488.28
   //analogWriteResolution(12);     // default = 8 (255)
-
-  Wire.begin(8); //use for PM pump********************************************************************************
+  Wire1.setSDA(17) //Pin 17 is SDA_1
+  Wire1.setSCL(16) //Pin 16 is SCL_1
+  Wire1.begin(); //use for PM pump********************************************************************************
  // Wire.begin(4); // use foe VOC pump
   Wire.onRequest(requestEvent); // register event for I2C with mainboard
   Wire.onReceive(receiveEvent);
@@ -94,6 +109,7 @@ void setup(){
   pinMode(StandbyPin, OUTPUT);
   pinMode(inPin, INPUT);
   digitalWrite(inPin,LOW);
+
   
   digitalWrite(StandbyPin, LOW);  // turn off pump 
   delay(50);
@@ -212,8 +228,8 @@ void PIDMain(){                   // PID main function
 
 void requestEvent()  // function that executes whenever data is requested by main
 {
-  //Serial.println("H");
-  //Serial.println("Request");
+
+  Serial.println("Request");
   char PresArray[12];
   String str;
   str = String(PumpStatus) + ',' + int(average_P) + ',' + int(pumpspeed);
@@ -224,11 +240,30 @@ void requestEvent()  // function that executes whenever data is requested by mai
 
 void receiveEvent(int howMany) {  //set pump control, bp pressures, and motor speed
   //Serial.println("H");
+  int msg_length = 7;
   while (Wire.available() > 0) {
     char c = Wire.read();
     inByte += c;
     i = 1;   
-  } 
+  }
+  
+}
+
+
+
+
+
+
+
+
+
+
+
+
+//Past here thar be code that hath been laid to rest
+
+
+/* 
   if (i == 1 && inByte.startsWith("P")) {     //if first chars = P set pressure
    initialize();   // reset PID
    inByte = inByte.substring(1);
@@ -260,4 +295,4 @@ void receiveEvent(int howMany) {  //set pump control, bp pressures, and motor sp
    i = 0;
    inByte = "";
   }     
-}
+  */
