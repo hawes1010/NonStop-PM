@@ -1,0 +1,12 @@
+Temperature: 227 0 0Pressure 0 127 0~~~Note this is a repeated value
+Temperauture: 226 0 192~~ this changes
+Pressure: 0 127 0
+Temperature: 226 0 192
+Status Byte: 40
+Send
+Wait bit is 0
+Hex of Ready byte is 40
+Reading
+Pressure: 0 127 0
+Temperature: 227 0 128
+Status Byte: 40
