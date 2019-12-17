@@ -56,6 +56,7 @@ const int PrePin = A7;          // Pressure sensor pin
 const int AdjustPin = A9;       // Potentiometer pin
 const int StandbyPin = 13;      // Motor board standby pin
 const int inPin = 17;           // Read command from mainboard
+const int EOC = 21;
 //const int SDAPin = 18;          // SDA pin for I2C
 //const int SCLPin = 19;          // SCL pin for I2C
 const int PWMPin = 20;          // PWM output to motor control board
@@ -98,23 +99,23 @@ unsigned long currentMillis = 0;
 long previousMillis_send = 0;       // will store last time i2c data was sent to PS sensor
 long previousMillis_receive = 0;
 long interval_read = 65; 
-long interval_send = 100; 
+long interval_send = 65; 
 boolean send_flag = false;
 long send_ms = 0;
 //I2C values read from Sensors
- long pressure_read = 0;
- long temperature = 0;
+ uint32_t pressure_read = 0;
+ uint32_t temperature = 0;
 int status_byte = 0;
 float average_pres = 0;
 float average_temp = 0;
 
 //Sensor References 
-uint32_t REFERENCE = (uint32_t) 1 << 24;
-uint32_t D_REFERENCE = (REFERENCE * 0.5);
+uint32_t REFERENCE =  1 << 24;
+uint32_t D_REFERENCE = (uint32_t)(REFERENCE * 0.5);
 uint32_t RESOLUTION = 24;
 uint32_t SENSOR_RES = 18;
 uint32_t TEMP_RES = 16;
-uint32_t FSS = 1;
+uint32_t FSS = 20;
 //Math Masks
 uint32_t pressure_resolution_mask    = ~(((uint32_t) 1 << (RESOLUTION - SENSOR_RES)) - 1);
 uint32_t temperature_resolution_mask = ~(((uint32_t) 1 << (RESOLUTION - TEMP_RES)) - 1);
@@ -130,20 +131,20 @@ void setup(){
  // Wire.begin(8); // use foe VOC pump
 //  Wire.onRequest(requestEvent); // register event for I2C with mainboard
  // Wire.onReceive(receiveEvent);
-  analogReadRes(13); // Set Teensy analog resolution to 13 bits
-  pinMode(PWMPin, OUTPUT);    
-  pinMode(PrePin, INPUT);
-  pinMode(StandbyPin, OUTPUT);
-  pinMode(inPin, INPUT);
-  digitalWrite(inPin,LOW);
+ // analogReadRes(13); // Set Teensy analog resolution to 13 bits
+ // pinMode(PWMPin, OUTPUT);    
+ // pinMode(PrePin, INPUT);
+ // pinMode(StandbyPin, OUTPUT);
+ // pinMode(inPin, INPUT);
+  //digitalWrite(inPin,LOW);
 
 
  //Clean up Average
- Out.clear();
- TEMP.clear();
- PRES.clear();
+//Out.clear();
+// TEMP.clear();
+ //PRES.clear();
  
-  digitalWrite(StandbyPin, LOW);  // turn off pump 
+  //digitalWrite(StandbyPin, LOW);  // turn off pump 
   delay(50);
   Serial.begin(115200);    //open Serial port
   delay(100);
@@ -323,13 +324,13 @@ currentMillis = millis();
 //array to hold bytes from PS sensor
 boolean Data_done = false;
 //static int count = 0;
- long data[7];
- long pressure0 = 0;
- long pressure1 = 0;
- long pressure2= 0;
- long temp0= 0;
- long temp1= 0;
- long temp2= 0;
+uint8_t data[7];
+uint8_t pressure0 = 0;
+uint8_t pressure1 = 0;
+uint8_t pressure2= 0;
+uint8_t temp0= 0;
+uint8_t temp1= 0;
+uint8_t temp2= 0;
 
 uint8_t status0;
 int status1;
@@ -345,6 +346,7 @@ byte ready_byte = 0;
 if(send_flag){
  Wire.requestFrom(41,1);
 ready_byte = Wire.read();
+
 status0 = bitRead(ready_byte,0);
 status1 = bitRead(ready_byte,1);
 status2 = bitRead(ready_byte,2);
@@ -358,7 +360,7 @@ if(bitRead(ready_byte,5)==0){
 Data_done = true;
 }
 
-if(bitRead(ready_byte,5)==0){
+if(digitalRead(EOC)==1){
  Serial.print("Wait bit is ");
  Serial.println(bitRead(ready_byte,5));
  Serial.print("Hex of Ready byte is ");
@@ -377,12 +379,12 @@ if(/*(currentMillis - send_ms >= interval_read) && */(send_flag) & (Data_done)){
   }
   i = 0;
    //Serial.println("H2");
-  status_byte = data[0];
- pressure2= data[1] << 16;
- pressure1= data[2] << 8;
- pressure0= data[3];
- temp0= data[4] << 16;
- temp1= data[5] << 8;
+ status_byte = data[0];
+ pressure2 =   data[1];  //<< 16;
+ pressure1  =  data[2];  //<< 8;
+ pressure0= data[3] ;
+ temp0= data[4]; //<< 16;
+ temp1= data[5]; //<< 8;
  temp2= data[6];
 
  /*
@@ -394,32 +396,53 @@ uint32_t FSS = 20;
   temperature_resolution_mask = ~(((uint32_t) 1 << (FULL_SCALE_RESOLUTION - TEMPERATURE_RESOLUTION)) - 1);
   * 
   */
-  
- pressure_read = pressure2 + pressure1 + pressure0;
+ uint32_t mp = 0;
+ pressure_read = pressure2 << 16 | (pressure1 & 0xffff ) << 8 | (pressure0 & 0xff);
+
+ mp += (uint32_t)pressure0;
+ mp += (uint32_t)(pressure1 << 8);
+ mp += (uint32_t)(pressure2 << 16) ;
+
+ uint32_t mt = 0;
+ mt |= (uint32_t)temp2;
+ mt |= (uint32_t)(temp1 << 8);
+ mt |= (uint32_t)(temp0 << 16) ;
+ uint32_t ref = pow(2,24);
 //pressure_read = pressure_read & pressure_resolution_mask;
- pressure_read = (1.25*FSS*((pressure_read -(D_REFERENCE))))/REFERENCE;
+//mp = mp & pressure_resolution_mask;
+// pressure_read = (1.25*FSS*((pressure_read -D_REFERENCE)))*(1/REFERENCE);
+  mp & 0x00ffffff;
+  mp = (1.25*FSS*((mp -D_REFERENCE)))/(REFERENCE);
  temperature = temp2 + temp1 + temp0;
 // temperature = temperature & temperature_resolution_mask;
- temperature = ((temperature*125)/REFERENCE)-40;
+ 
+// temperature = ((temperature*125)/REFERENCE)-40;
+mt = mt & 0x00ffff00;
+ mt = ((mt*125)/REFERENCE)-40;
  
  send_flag = false;
  //Serial.println("R");
+
 Serial.print("Pressure: ");
+/*
 Serial.print(data[1]);
 Serial.print(" ");
 Serial.print(data[2]);
 Serial.print(" ");
 Serial.println(data[3]);
-
-
+*/
+Serial.println(mp);
 //Serial.println(pressure_read);
 Serial.print("Temperature: ");
+
 Serial.print(data[4]);
 Serial.print(" ");
 Serial.print(data[5]);
 Serial.print(" ");
 Serial.println(data[6]);
+
 //Serial.println(temperature);
+Serial.println(mt);
 Serial.print("Status Byte: ");
 Serial.println(data[0], HEX);
 PRES.addValue(pressure_read);
@@ -437,20 +460,20 @@ i = 0;
 
 }
 
-delay(1000);
 }
 
 void Request_PS(){
  //Serial.println("H");
 
 if (first_time == true){
-  delay(1000);
+ // delay(1000);
   first_time = false;
 }
 
+ // delay(1000);
 
 currentMillis = millis();
-if(/*(currentMillis - previousMillis_send > interval_send)  && */(!send_flag)) {
+if((currentMillis - previousMillis_send > interval_send)  && (!send_flag)) {
   //Serial.println("Send");
     // save the last time sent data
     previousMillis_send = currentMillis;   
