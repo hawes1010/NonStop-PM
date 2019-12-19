@@ -412,11 +412,11 @@ Serial.println(pressure1, BIN);
 Serial.print("Raw Pressure: ");
 Serial.println(mp);
 
- uint32_t mt = 0;
- //temp0 = 0;
- mt += (uint32_t)temp0;
- mt += (uint32_t)(temp1 << 8);
- mt += (uint32_t)(temp2 << 16) ;
+ float mt = 0;
+ temp0 = 0;
+ mt += (float)temp0;
+ mt += (float)(temp1 << 8);
+ mt += (float)(temp2 << 16) ;
  Serial.print("Raw Temp: ");
 Serial.println(mt);
  uint32_t ref = pow(2,24);
@@ -431,8 +431,8 @@ Serial.println(mt);
  
 // temperature = ((temperature*125)/REFERENCE)-40;
  //mt &= ~0x000000ff;
- mt = ((mt*125)/FULL_RES)-40;
- 
+ mt = ((mt*125)/FULL_RES)-5.7;
+ mt = (int)round(mt);
  send_flag = false;
  //Serial.println("R");
 
