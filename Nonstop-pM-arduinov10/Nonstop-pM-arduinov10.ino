@@ -110,12 +110,13 @@ float average_pres = 0;
 float average_temp = 0;
 
 //Sensor References 
-uint32_t REFERENCE =  1 << 24;
+uint32_t REFERENCE =  1 << 16;
+uint32_t FULL_RES = 1 << 23;
 uint32_t D_REFERENCE = (uint32_t)(REFERENCE * 0.5);
 uint32_t RESOLUTION = 24;
 uint32_t SENSOR_RES = 18;
 uint32_t TEMP_RES = 16;
-uint32_t FSS = 20;
+uint32_t FSS = 10;
 //Math Masks
 uint32_t pressure_resolution_mask    = ~(((uint32_t) 1 << (RESOLUTION - SENSOR_RES)) - 1);
 uint32_t temperature_resolution_mask = ~(((uint32_t) 1 << (RESOLUTION - TEMP_RES)) - 1);
@@ -123,7 +124,8 @@ uint32_t temperature_resolution_mask = ~(((uint32_t) 1 << (RESOLUTION - TEMP_RES
 
  
 void setup(){
-  analogWriteFrequency(20, 488); // pwm frequenc. default = 488.28
+    pinMode(EOC, INPUT);    // sets the digital pin 7 as input
+//  analogWriteFrequency(20, 488); // pwm frequenc. default = 488.28
   //analogWriteResolution(12);     // default = 8 (255)
   //Wire.setSDA(17); //Pin 17 is SDA_1
  // Wire.setSCL(16); //Pin 16 is SCL_1
@@ -324,13 +326,13 @@ currentMillis = millis();
 //array to hold bytes from PS sensor
 boolean Data_done = false;
 //static int count = 0;
-uint8_t data[7];
-uint8_t pressure0 = 0;
-uint8_t pressure1 = 0;
-uint8_t pressure2= 0;
-uint8_t temp0= 0;
-uint8_t temp1= 0;
-uint8_t temp2= 0;
+uint32_t data[7];
+uint32_t pressure0 = 0;
+uint32_t pressure1 = 0;
+uint32_t pressure2= 0;
+uint32_t temp0= 0;
+uint32_t temp1= 0;
+uint32_t temp2= 0;
 
 uint8_t status0;
 int status1;
@@ -344,9 +346,9 @@ int status7;
 
 byte ready_byte = 0;
 if(send_flag){
- Wire.requestFrom(41,1);
-ready_byte = Wire.read();
-
+// Wire.requestFrom(41,1);
+//ready_byte = Wire.read();
+/*
 status0 = bitRead(ready_byte,0);
 status1 = bitRead(ready_byte,1);
 status2 = bitRead(ready_byte,2);
@@ -357,18 +359,21 @@ status6 = bitRead(ready_byte,6);
 status7 = bitRead(ready_byte,7);
 
 if(bitRead(ready_byte,5)==0){
-Data_done = true;
 }
-
+*/
+//Serial.print("EOC: ");
+//Serial.println(digitalRead(EOC));
 if(digitalRead(EOC)==1){
- Serial.print("Wait bit is ");
- Serial.println(bitRead(ready_byte,5));
- Serial.print("Hex of Ready byte is ");
- Serial.println(ready_byte,HEX);
+ //Serial.print("Wait bit is ");
+ //Serial.println(bitRead(ready_byte,5));
+ Serial.print("Hex of Ready byte is  0");
+ //Serial.println(ready_byte,HEX);
+ Data_done = true;
 }
  
 
 if(/*(currentMillis - send_ms >= interval_read) && */(send_flag) & (Data_done)){
+  Data_done = false;
  Serial.println("Reading");
   Wire.requestFrom(41,7);
   //Serial.println("H");
@@ -383,9 +388,9 @@ if(/*(currentMillis - send_ms >= interval_read) && */(send_flag) & (Data_done)){
  pressure2 =   data[1];  //<< 16;
  pressure1  =  data[2];  //<< 8;
  pressure0= data[3] ;
- temp0= data[4]; //<< 16;
+ temp2= data[4]; //<< 16;
  temp1= data[5]; //<< 8;
- temp2= data[6];
+ temp0= data[6];
 
  /*
 uint32_t REFERENCE = (uint32_t) 1 << 24;
@@ -402,35 +407,43 @@ uint32_t FSS = 20;
  mp += (uint32_t)pressure0;
  mp += (uint32_t)(pressure1 << 8);
  mp += (uint32_t)(pressure2 << 16) ;
+ Serial.print("Raw Pressure 1: "); // raw value is 10000000 << 8 which is 2^15 which is 32768
+Serial.println(pressure1, BIN);
+Serial.print("Raw Pressure: ");
+Serial.println(mp);
 
  uint32_t mt = 0;
- mt |= (uint32_t)temp2;
- mt |= (uint32_t)(temp1 << 8);
- mt |= (uint32_t)(temp0 << 16) ;
+ //temp0 = 0;
+ mt += (uint32_t)temp0;
+ mt += (uint32_t)(temp1 << 8);
+ mt += (uint32_t)(temp2 << 16) ;
+ Serial.print("Raw Temp: ");
+Serial.println(mt);
  uint32_t ref = pow(2,24);
 //pressure_read = pressure_read & pressure_resolution_mask;
 //mp = mp & pressure_resolution_mask;
 // pressure_read = (1.25*FSS*((pressure_read -D_REFERENCE)))*(1/REFERENCE);
-  mp & 0x00ffffff;
-  mp = (1.25*FSS*((mp -D_REFERENCE)))/(REFERENCE);
+  mp &= 0x00ffffff;
+  //mp = (float)12.5*((mp/REFERENCE)-.5);
+ // mp = ((1.25*FSS*((mp-D_REFERENCE)))/(REFERENCE));
  temperature = temp2 + temp1 + temp0;
 // temperature = temperature & temperature_resolution_mask;
  
 // temperature = ((temperature*125)/REFERENCE)-40;
-mt = mt & 0x00ffff00;
- mt = ((mt*125)/REFERENCE)-40;
+ //mt &= ~0x000000ff;
+ mt = ((mt*125)/FULL_RES)-40;
  
  send_flag = false;
  //Serial.println("R");
 
 Serial.print("Pressure: ");
-/*
+
 Serial.print(data[1]);
 Serial.print(" ");
 Serial.print(data[2]);
 Serial.print(" ");
 Serial.println(data[3]);
-*/
+
 Serial.println(mp);
 //Serial.println(pressure_read);
 Serial.print("Temperature: ");
@@ -443,8 +456,9 @@ Serial.println(data[6]);
 
 //Serial.println(temperature);
 Serial.println(mt);
-Serial.print("Status Byte: ");
-Serial.println(data[0], HEX);
+
+//Serial.print("Status Byte: ");
+//Serial.println(data[0], HEX);
 PRES.addValue(pressure_read);
 TEMP.addValue(temperature);
 
