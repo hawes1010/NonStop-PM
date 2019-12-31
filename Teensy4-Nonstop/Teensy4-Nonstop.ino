@@ -1,6 +1,3 @@
-//#include <i2c_t3.h>
-
-//#include <i2c_t3.h>
 /* Version 2.0
   -fixed pid input output scaling error
   -fixed pid output range error
@@ -127,13 +124,13 @@ uint32_t temperature_resolution_mask = ~(((uint32_t) 1 << (RESOLUTION - TEMP_RES
 
  
 void setup(){
-    pinMode(EOC, INPUT);    // sets the digital pin 7 as input
+    //pinMode(EOC, INPUT);    // sets the digital pin 7 as input
 //  analogWriteFrequency(20, 488); // pwm frequenc. default = 488.28
   //analogWriteResolution(12);     // default = 8 (255)
- // Wire.setSDA(17); //Pin 17 is SDA_1
- // Wire.setSCL(16); //Pin 16 is SCL_1
-  //Wire.begin(); //use for PM pump********************************************************************************
-  Wire.begin();
+  Wire.setSDA(17); //Pin 17 is SDA_1
+  Wire.setSCL(16); //Pin 16 is SCL_1
+  delay(50);
+  Wire.begin(); //use for PM pump********************************************************************************
  // Wire.begin(8); // use foe VOC pump
 //  Wire.onRequest(requestEvent); // register event for I2C with mainboard
  // Wire.onReceive(receiveEvent);
@@ -325,7 +322,7 @@ void receiveEvent(int howMany) {  //set pump control, bp pressures, and motor sp
 }
 
 void read_PS(){
-  
+  //Serial.println("read");
 currentMillis = millis(); 
 //array to hold bytes from PS sensor
 boolean Data_done = false;
@@ -350,6 +347,7 @@ int status7;
 
 byte ready_byte = 0;
 if(send_flag){
+  Serial.println("read");
 // Wire.requestFrom(41,1);
 //ready_byte = Wire.read();
 /*
@@ -481,7 +479,7 @@ i = 0;
 }
 
 void Request_PS(){
- //Serial.println("H");
+ //Serial.println("Request");
 
 if (first_time == true){
  // delay(1000);
@@ -492,8 +490,9 @@ if (first_time == true){
 
 currentMillis = millis();
 if((currentMillis - previousMillis_send > interval_send)  && (!send_flag)) {
-  //Serial.println("Send");
+  Serial.println("Send");
     // save the last time sent data
+    
     previousMillis_send = currentMillis;   
 // start transmission to address 0x29 and ask for a average of 16 samples
     Wire.beginTransmission(41);
