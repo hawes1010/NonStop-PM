@@ -127,8 +127,8 @@ void setup(){
     pinMode(EOC, INPUT);    // sets the digital pin 7 as input
 //  analogWriteFrequency(20, 488); // pwm frequenc. default = 488.28
   //analogWriteResolution(12);     // default = 8 (255)
-  //Wire.setSDA(17); //Pin 17 is SDA_1
- // Wire.setSCL(16); //Pin 16 is SCL_1
+  Wire.setSDA(17); //Pin 17 is SDA_1
+  Wire.setSCL(16); //Pin 16 is SCL_1
   Wire.begin(); //use for PM pump********************************************************************************
  // Wire.begin(8); // use foe VOC pump
 //  Wire.onRequest(requestEvent); // register event for I2C with mainboard
