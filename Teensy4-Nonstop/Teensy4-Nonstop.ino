@@ -3,6 +3,9 @@
   -fixed pid output range error
   -increased program loop rate thus increasing pid correction rate
   -tunid pid to p=3,i=2,d=.3 
+
+  Version 2.1 
+  -added I2C functions for the DLHR Sensor
 */
 
 #include <math.h>
@@ -125,21 +128,19 @@ uint32_t temperature_resolution_mask = ~(((uint32_t) 1 << (RESOLUTION - TEMP_RES
  
 void setup(){
     pinMode(EOC, INPUT);    // sets the digital pin 7 as input
-//  analogWriteFrequency(20, 488); // pwm frequenc. default = 488.28
-  //analogWriteResolution(12);     // default = 8 (255)
- // Wire.setSDA(17); //Pin 17 is SDA_1
- // Wire.setSCL(16); //Pin 16 is SCL_1
- // delay(50);
+  analogWriteFrequency(20, 488); // pwm frequenc. default = 488.28
+  analogWriteResolution(12);     // default = 8 (255)
+  delay(50);
   Wire1.begin(); //use for PM pump********************************************************************************
- // Wire.begin(8); // use foe VOC pump
-//  Wire.onRequest(requestEvent); // register event for I2C with mainboard
- // Wire.onReceive(receiveEvent);
- // analogReadRes(13); // Set Teensy analog resolution to 13 bits
- // pinMode(PWMPin, OUTPUT);    
- // pinMode(PrePin, INPUT);
- // pinMode(StandbyPin, OUTPUT);
- // pinMode(inPin, INPUT);
-  //digitalWrite(inPin,LOW);
+  Wire.begin(8); // use foe VOC pump
+  Wire.onRequest(requestEvent); // register event for I2C with mainboard
+  Wire.onReceive(receiveEvent);
+  analogReadRes(13); // Set Teensy analog resolution to 13 bits
+  pinMode(PWMPin, OUTPUT);    
+  pinMode(PrePin, INPUT);
+  pinMode(StandbyPin, OUTPUT);
+  pinMode(inPin, INPUT);
+  digitalWrite(inPin,LOW);
 
 
  //Clean up Average
@@ -167,7 +168,7 @@ void loop(){
 Request_PS();
 read_PS();
 
-/*
+
  // Serial.println("H");
         // read from the sensor and add into array
       Pre.addValue(analogRead(PrePin));
@@ -175,9 +176,7 @@ read_PS();
         average_P = Pre.getAverage();  
   
   if (nopid == 0){
-    //Serial.println("H");
    if (digitalRead(inPin) == HIGH){
-     // Serial.println("InCommand");
      // Receive command to turn on pump
      digitalWrite(StandbyPin, HIGH); 
      //if (ShutDownCount == 0){Output = 5000; }
@@ -195,7 +194,6 @@ read_PS();
    }
   } 
 
-  */
 }
 
 void initialize() {
@@ -220,7 +218,7 @@ void initialize() {
 void PumpSlowShutDown(){
 // Slowly shutdown the pump within 1 second
 
-  int countdown = 175;
+  int countdown = 250;
   while (countdown > 0){
     analogWrite(PWMPin,countdown);
     countdown = countdown-2;
