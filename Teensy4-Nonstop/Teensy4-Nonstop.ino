@@ -59,7 +59,7 @@ const int PrePin = A7;          // Pressure sensor pin
 const int AdjustPin = A9;       // Potentiometer pin
 const int StandbyPin = 13;      // Motor board standby pin
 const int inPin = 17;           // Read command from mainboard
-const int EOC = 0;
+const int EOC = 21;
 //const int SDAPin = 18;          // SDA pin for I2C
 //const int SCLPin = 19;          // SCL pin for I2C
 const int PWMPin = 20;          // PWM output to motor control board
@@ -168,8 +168,6 @@ void loop(){
 Request_PS();
 read_PS();
 
-
- // Serial.println("H");
         // read from the sensor and add into array
       Pre.addValue(analogRead(PrePin));
       // advance to the next position in the array:
