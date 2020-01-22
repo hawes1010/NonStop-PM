@@ -24,6 +24,8 @@ int Bpress;
 int Epress;
 int nopid = 0;
 
+//Int
+
 //int PumpCode = 1;    
 
 // Parameter needs calibration
@@ -34,8 +36,8 @@ int PMax = 0;          // powerlevel for pump
   
 //Specify the links and initial PID tuning parameters, choose one
 //PID myPID(&Input, &Output, &Setpoint,3,3,.2, DIRECT); // ODEN #1
-PID myPID(&Input, &Output, &Setpoint,3,3,.2, DIRECT); // BALDOR #2
-//PID myPID(&Input, &Output, &Setpoint,2,1.5,.2, DIRECT); // #3
+// PID myPID(&Input, &Output, &Setpoint,3,3,.2, DIRECT); // BALDOR #2
+//PID myPID(&Input, &Output, &Setpoint,2,1.5,.2, DIRECT); // NORSE DEITY #3
 //PID myPID(&Input, &Output, &Setpoint,2,1.5,.2, DIRECT); // LOKE #4
 
 
@@ -74,11 +76,10 @@ byte PumpUnload = 1;            // Unloaded = 1, fully load = 0
 byte ShutDownCount = 0;         // Shut down pump slowly after command
 int myindex = 0;                // the index of the current reading
 
-
 RunningAverage Pre(PreReadings);// the readings from the analog input
 RunningAverage Out(OutReadings);// the readings from the analog input
-RunningAverage TEMP(5);
-RunningAverage PRES(5);
+RunningAverage TEMP(10);
+RunningAverage PRES(1000);
 float average_P = 0;            // the average of pressure
 float average_O = 0;            // the average of PID output
 int pumpspeed = 0;
@@ -91,7 +92,6 @@ byte start_avg2 = 0xAC;
 byte start_avg4 = 0xAD;
 byte start_avg8 = 0xAE;
 byte start_avg16 = 0xAF;
-
 
 //I2C address and sending info
 int PM_slave_addr = 0x29;
@@ -109,8 +109,6 @@ long send_ms = 0;
  uint32_t pressure_read = 0;
  uint32_t temperature = 0;
 int status_byte = 0;
-float average_pres = 0;
-float average_temp = 0;
 
 //Sensor References 
 uint32_t REFERENCE =  1 << 16;
@@ -120,11 +118,18 @@ uint32_t RESOLUTION = 24;
 uint32_t SENSOR_RES = 18;
 uint32_t TEMP_RES = 16;
 uint32_t FSS = 10;
-//Math Masks
+// Math Masks
 uint32_t pressure_resolution_mask    = ~(((uint32_t) 1 << (RESOLUTION - SENSOR_RES)) - 1);
 uint32_t temperature_resolution_mask = ~(((uint32_t) 1 << (RESOLUTION - TEMP_RES)) - 1);
-// 
+// Timing Variables
+int period = 3000;
+int intervals = 3;
 
+float average_pres = 0;
+float average_temp = 0;
+int output_power = 0;
+
+PID myPID(&average_pres, &output_power, &Setpoint,3,3,.2, DIRECT); // BALDOR #2
  
 void setup(){
     pinMode(EOC, INPUT);    // sets the digital pin 7 as input
@@ -132,9 +137,9 @@ void setup(){
   analogWriteResolution(12);     // default = 8 (255)
   delay(50);
   Wire1.begin(); //use for PM pump********************************************************************************
-  Wire.begin(8); // use foe VOC pump
-  Wire.onRequest(requestEvent); // register event for I2C with mainboard
-  Wire.onReceive(receiveEvent);
+ // Wire.begin(8); // use foe VOC pump
+ // Wire.onRequest(requestEvent); // register event for I2C with mainboard
+  //Wire.onReceive(receiveEvent);
   analogReadRes(13); // Set Teensy analog resolution to 13 bits
   pinMode(PWMPin, OUTPUT);    
   pinMode(PrePin, INPUT);
@@ -168,18 +173,20 @@ void loop(){
 Request_PS();
 read_PS();
 
-        // read from the sensor and add into array
-      Pre.addValue(analogRead(PrePin));
-      // advance to the next position in the array:
-        average_P = Pre.getAverage();  
+
+ 
+  // read from the sensor and add into array
+  Pre.addValue(analogRead(PrePin));
+  // advance to the next position in the array:
+  average_P = Pre.getAverage();  
   
   if (nopid == 0){
-   if (digitalRead(inPin) == HIGH){
-     // Receive command to turn on pump
-     digitalWrite(StandbyPin, HIGH); 
+      if (digitalRead(inPin) == HIGH){
+      // Receive command to turn on pump
+        digitalWrite(StandbyPin, HIGH); 
      //if (ShutDownCount == 0){Output = 5000; }
-     PIDMain();
-     ShutDownCount = 1; // Count shutdown
+        PIDMain();
+        ShutDownCount = 1; // Count shutdown
      }
    else{
      // Turn off pump
@@ -420,12 +427,14 @@ Serial.print("Pressure: ");
 Serial.println(mp);
 //Serial.println(pressure_read);
 Serial.print("Temperature: ");
-
 Serial.println(mt);
-
+Input = mp;
 PRES.addValue(mp);
 TEMP.addValue(mt);
-
+/*
+ * uint32_t pressure_read = 0;
+ * uint32_t temperature = 0;
+ */
 average_pres = PRES.getAverage();
 average_temp = TEMP.getAverage();
 
