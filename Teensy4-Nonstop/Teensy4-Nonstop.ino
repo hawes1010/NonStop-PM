@@ -176,7 +176,7 @@ read_PS();
 
  
   // read from the sensor and add into array
-  Pre.addValue(analogRead(PrePin));
+    //Pre.addValue(analogRead(PrePin));
   // advance to the next position in the array:
   average_P = Pre.getAverage();  
   
@@ -213,7 +213,8 @@ void initialize() {
          
   Pre.clear();
   Out.clear();
-  
+  TEMP.clear();
+  PRES.clear();
   Input = 0.0;
   Output = 0.0;
   Setpoint = 0.0;
