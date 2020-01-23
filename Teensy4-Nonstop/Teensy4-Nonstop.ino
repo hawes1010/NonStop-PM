@@ -132,7 +132,7 @@ int output_power = 0;
 PID myPID(&average_pres, &output_power, &Setpoint,3,3,.2, DIRECT); // BALDOR #2
  
 void setup(){
-    pinMode(EOC, INPUT);    // sets the digital pin 7 as input
+  pinMode(EOC, INPUT);    // sets the digital pin 7 as input
   analogWriteFrequency(20, 488); // pwm frequenc. default = 488.28
   analogWriteResolution(12);     // default = 8 (255)
   delay(50);
@@ -174,11 +174,15 @@ Request_PS();
 read_PS();
 
 
- 
+ myPID.Compute()
   // read from the sensor and add into array
+<<<<<<< HEAD
     //Pre.addValue(analogRead(PrePin));
+=======
+  // Pre.addValue(analogRead(PrePin));
+>>>>>>> a6278d4c29c078719a9805e22f2f72ec5ca13909
   // advance to the next position in the array:
-  average_P = Pre.getAverage();  
+  average_P = PRES.getAverage();  
   
   if (nopid == 0){
       if (digitalRead(inPin) == HIGH){
@@ -245,16 +249,18 @@ void PIDMain(){                   // PID main function
       // Update control after 1s     
         myindex = 0;         
         // Get the difference of sensor reading and set point
-        Input = average_P - SetPre;
+        float input_avg = PRES.getAverage();
+     //   Input = average_P - SetPre;
+        Input = input_avg; 
         // Calculate PID output
         myPID.Compute();
         // Obtain PID output:  
-        Out.addValue(Output);
+        Out.addValue(output_power);
         // Calculate output average
-        average_O = Out.getAverage();
+        output_power  = Out.getAverage();
         // Control pump power
-        analogWrite(PWMPin,min(Output/32,MaxPower)); 
-        pumpspeed = PMax + (Output/32);   
+        analogWrite(PWMPin,min(output_power/32,MaxPower)); 
+        pumpspeed = PMax + (output_power/32);   
         // Print out to the screen
         Serial.print(Output/32);
         Serial.print(',');
@@ -476,9 +482,18 @@ if((currentMillis - previousMillis_send > interval_send)  && (!send_flag)) {
   }
   
 }
-
-
-
+const long sample_interval = 333;
+int sample_max = 3;
+long previous_sample = 0;
+boolean SamplePressure(){
+ currentMillis = millis();
+if (currentMillis - previous_sample >= sample_interval) {
+   
+    previousMillis = currentMillis;
+  return true;
+}
+return false
+}
 
 
 
