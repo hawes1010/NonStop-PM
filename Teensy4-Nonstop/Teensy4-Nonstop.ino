@@ -135,7 +135,8 @@ double output_power = 0;
 PID myPID(&average_pres, &output_power, &Setpoint,3,3,.2, DIRECT); // BALDOR #2
  
 void setup(){
-    pinMode(EOC, INPUT);    // sets the digital pin 7 as input
+    pinMode(EOC, INPUT);    // sets the digital pin 7 as input]
+    pinMode(0,INPUT);
   analogWriteFrequency(20, 488); // pwm frequenc. default = 488.28
   analogWriteResolution(12);     // default = 8 (255)
   delay(50);
@@ -151,6 +152,8 @@ void setup(){
   pinMode(StandbyPin, OUTPUT);
   pinMode(inPin, INPUT);
   digitalWrite(inPin,LOW);
+  digitalWrite(0, HIGH);
+ 
 
 
  //Clean up Average
@@ -183,7 +186,7 @@ read_PS();
   // read from the sensor and add into array
     //Pre.addValue(analogRead(PrePin));
   // advance to the next position in the array:
-  average_P = PRES.getAverage();  
+ /* average_P = PRES.getAverage();  
   
   if (nopid == 0){
       if (digitalRead(inPin) == HIGH){
@@ -203,7 +206,7 @@ read_PS();
      }
    }
   } 
-
+*/
 }
 
 void initialize() {
@@ -248,8 +251,8 @@ void PIDMain(){                   // PID main function
   // Read the potentiometer reading as calibration
     EEPROM.get(100,SetPre);       //get stored pump control pressure
     PumpStatus = 1;
-    PRES.getAverage();
-    TEMP.getAverage();
+   // PRES.getAverage();
+   average_temp= TEMP.getAverage();
     //PID myPID(&average_pres, &output_power, &Setpoint,3,3,.2, DIRECT); // BALDOR #2
       // advance to the next position in the array:  
       myindex = myindex + 1;                    
@@ -339,7 +342,7 @@ void receiveEvent(int howMany) {  //set pump control, bp pressures, and motor sp
 }
 
 void read_PS(){
-  //Serial.println("read");
+Serial.println(digitalRead(EOC));
 currentMillis = millis(); 
 //array to hold bytes from PS sensor
 boolean Data_done = false;
@@ -351,7 +354,7 @@ uint32_t pressure2= 0;
 uint32_t temp0= 0;
 uint32_t temp1= 0;
 uint32_t temp2= 0;
-
+//Serial.println("H");
 //uint8_t status0;
 //int status1;
 //int status2;
@@ -464,7 +467,7 @@ for (i = 0; i < 7; i++){
   }
 
 void Request_PS(){
- //Serial.println("Request");
+ Serial.println("Request");
 
 if (first_time == true){
  // delay(1000);
@@ -477,13 +480,13 @@ currentMillis = millis();
 if((currentMillis - previousMillis_send > interval_send)  && (!send_flag)) {
   Serial.println("Send");
     // save the last time sent data
-    
+     send_flag = true;
     previousMillis_send = currentMillis;   
 // start transmission to address 0x29 and ask for a average of 16 samples
     Wire1.beginTransmission(41);
     Wire1.write(start_avg16);
     Wire1.endTransmission();
-     send_flag = true;
+    
      send_ms = currentMillis;
      Serial.println("Send");
   }
