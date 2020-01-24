@@ -63,7 +63,7 @@ float pressure;
 const int PrePin = A7;          // Pressure sensor pin
 const int AdjustPin = A9;       // Potentiometer pin
 const int StandbyPin = 13;      // Motor board standby pin
-const int inPin = 17;           // Read command from mainboard
+//const int inPin = 17;           // Read command from mainboard
 const int EOC = 21;
 //const int SDAPin = 18;          // SDA pin for I2C
 //const int SCLPin = 19;          // SCL pin for I2C
@@ -135,34 +135,33 @@ double output_power = 0;
 PID myPID(&average_pres, &output_power, &Setpoint,3,3,.2, DIRECT); // BALDOR #2
  
 void setup(){
-<<<<<<< HEAD
-    pinMode(EOC, INPUT);    // sets the digital pin 7 as input]
-    pinMode(0,INPUT);
-  analogWriteFrequency(20, 488); // pwm frequenc. default = 488.28
-  analogWriteResolution(12);     // default = 8 (255)
-  delay(50);
-  Wire1.begin(); //use for PM pump********************************************************************************
+
+    pinMode(EOC, INPUT);    // sets the digital pin 21 as input]
+ 
+//  analogWriteFrequency(20, 488); // pwm frequenc. default = 488.28
+  //analogWriteResolution(12);     // default = 8 (255)
+ // delay(50);
+  //Wire1.begin(); //use for PM pump********************************************************************************
   
-=======
     //pinMode(EOC, INPUT);    // sets the digital pin 7 as input
 //  analogWriteFrequency(20, 488); // pwm frequenc. default = 488.28
   //analogWriteResolution(12);     // default = 8 (255)
-  Wire.setSDA(17); //Pin 17 is SDA_1
-  Wire.setSCL(16); //Pin 16 is SCL_1
+ Wire1.setSDA(17); //Pin 17 is SDA_1
+ Wire1.setSCL(16); //Pin 16 is SCL_1
   delay(50);
-  Wire.begin(); //use for PM pump********************************************************************************
->>>>>>> parent of 1b57faf... Update Teensy4-Nonstop.ino
+  Wire1.begin(); //use for PM pump********************************************************************************
+//>>>>>>> parent of 1b57faf... Update Teensy4-Nonstop.ino
  // Wire.begin(8); // use foe VOC pump
  // Wire.onRequest(requestEvent); // register event for I2C with mainboard
   //Wire.onReceive(receiveEvent);
   
-  analogReadRes(13); // Set Teensy analog resolution to 13 bits
-  pinMode(PWMPin, OUTPUT);    
-  pinMode(PrePin, INPUT);
-  pinMode(StandbyPin, OUTPUT);
-  pinMode(inPin, INPUT);
-  digitalWrite(inPin,LOW);
-  digitalWrite(0, HIGH);
+ // analogReadRes(13); // Set Teensy analog resolution to 13 bits
+  //pinMode(PWMPin, OUTPUT);    
+ // pinMode(PrePin, INPUT);
+ // pinMode(StandbyPin, OUTPUT);
+ // pinMode(inPin, INPUT);
+ // digitalWrite(inPin,LOW);
+  //digitalWrite(0, HIGH);
  
 
 
@@ -180,8 +179,8 @@ void setup(){
 
     
   //turn the PID on
-  myPID.SetOutputLimits(-16384, 16384); // This doesn't work unless this somehow 
-  myPID.SetMode(AUTOMATIC);
+ // myPID.SetOutputLimits(-16384, 16384); // This doesn't work unless this somehow 
+  //myPID.SetMode(AUTOMATIC);
   //EEPROM.put(200, 1002);  // !!!ONLY USE THE VERY FIRST TIME LOADING TEENSY!!!
  // EEPROM.put(100, 5000);  // !!!ONLY USE THE VERY FIRST TIME LOADING TEENSY!!!
 }
@@ -352,7 +351,7 @@ void receiveEvent(int howMany) {  //set pump control, bp pressures, and motor sp
 }
 
 void read_PS(){
-Serial.println(digitalRead(EOC));
+//Serial.println(digitalRead(EOC));
 currentMillis = millis(); 
 //array to hold bytes from PS sensor
 boolean Data_done = false;
@@ -364,7 +363,6 @@ uint32_t pressure2= 0;
 uint32_t temp0= 0;
 uint32_t temp1= 0;
 uint32_t temp2= 0;
-<<<<<<< HEAD
 //Serial.println("H");
 //uint8_t status0;
 //int status1;
@@ -374,7 +372,6 @@ uint32_t temp2= 0;
 //int status5;
 //int status6;
 //int status7;
-=======
 
 uint8_t status0;
 int status1;
@@ -384,29 +381,12 @@ int status4;
 int status5;
 int status6;
 int status7;
->>>>>>> parent of 1b57faf... Update Teensy4-Nonstop.ino
-
 
 byte ready_byte = 0;
 if(send_flag){
-  Serial.println("read");
-// Wire.requestFrom(41,1);
-//ready_byte = Wire.read();
-/*
-status0 = bitRead(ready_byte,0);
-status1 = bitRead(ready_byte,1);
-status2 = bitRead(ready_byte,2);
-status3 = bitRead(ready_byte,3);
-status4 = bitRead(ready_byte,4);
-status5 = bitRead(ready_byte,5);
-status6 = bitRead(ready_byte,6);
-status7 = bitRead(ready_byte,7);
-
-if(bitRead(ready_byte,5)==0){
-}
-*/
-//Serial.print("EOC: ");
-//Serial.println(digitalRead(EOC));
+Serial.println("read");
+Serial.print("EOC: ");
+Serial.println(digitalRead(EOC));
 if(digitalRead(EOC)==1){
  //Serial.print("Wait bit is ");
  //Serial.println(bitRead(ready_byte,5));
@@ -419,15 +399,15 @@ if(digitalRead(EOC)==1){
 if(/*(currentMillis - send_ms >= interval_read) && */(send_flag) & (Data_done)){
   Data_done = false;
  Serial.println("Reading");
-  Wire.requestFrom(41,7);
+  Wire1.requestFrom(41,7);
   //Serial.println("H");
   int i = 0;
   for (i = 0; i < 7; i++){
-    data[i] = Wire.receive();
+    data[i] = Wire1.receive();
     i++;
   }
   i = 0;
-   //Serial.println("H2");
+   Serial.println("H2");
  status_byte = data[0];
  pressure2 =   data[1];  //<< 16;
  pressure1  =  data[2];  //<< 8;
@@ -435,16 +415,6 @@ if(/*(currentMillis - send_ms >= interval_read) && */(send_flag) & (Data_done)){
  temp2= data[4]; //<< 16;
  temp1= data[5]; //<< 8;
  temp0= data[6];
-
- /*
-uint32_t REFERENCE = (uint32_t) 1 << 24;
-uint32_t D_REFERENCE = (REFERENCE/2);
-uint32_t FSS = 20;
-  * 
-  pressure_resolution_mask    = ~(((uint32_t) 1 << (FULL_SCALE_RESOLUTION - pressure_resolution)) - 1);
-  temperature_resolution_mask = ~(((uint32_t) 1 << (FULL_SCALE_RESOLUTION - TEMPERATURE_RESOLUTION)) - 1);
-  * 
-  */
  uint32_t mp = 0;
  pressure_read = pressure2 << 16 | (pressure1 & 0xffff ) << 8 | (pressure0 & 0xff);
 
@@ -461,7 +431,7 @@ Serial.println(mp);
  mt += (float)temp0;
  mt += (float)(temp1 << 8);
  mt += (float)(temp2 << 16) ;
- Serial.print("Raw Temp: ");
+Serial.print("Raw Temp: ");
 Serial.println(mt);
  uint32_t ref = pow(2,24);
 //pressure_read = pressure_read & pressure_resolution_mask;
@@ -491,7 +461,6 @@ Serial.println(data[3]);
 Serial.println(mp);
 //Serial.println(pressure_read);
 Serial.print("Temperature: ");
-<<<<<<< HEAD
 Serial.println(mt);
 Input = mp;
 //add PID values;
@@ -501,7 +470,6 @@ TEMP.addValue(mt);
  * uint32_t pressure_read = 0;
  * uint32_t temperature = 0;
  */
-=======
 
 Serial.print(data[4]);
 Serial.print(" ");
@@ -516,7 +484,6 @@ Serial.println(mt);
 //Serial.println(data[0], HEX);
 PRES.addValue(pressure_read);
 TEMP.addValue(temperature);
->>>>>>> parent of 1b57faf... Update Teensy4-Nonstop.ino
 
 
 for (i = 0; i < 7; i++){
@@ -542,22 +509,16 @@ if (first_time == true){
 
 currentMillis = millis();
 if((currentMillis - previousMillis_send > interval_send)  && (!send_flag)) {
-  Serial.println("Send");
+  //Serial.println("Send");
     // save the last time sent data
      send_flag = true;
     previousMillis_send = currentMillis;   
 // start transmission to address 0x29 and ask for a average of 16 samples
-<<<<<<< HEAD
     Wire1.beginTransmission(41);
     Wire1.write(start_avg16);
     Wire1.endTransmission();
-    
-=======
-    Wire.beginTransmission(41);
-    Wire.write(start_avg16);
-    Wire.endTransmission();
      send_flag = true;
->>>>>>> parent of 1b57faf... Update Teensy4-Nonstop.ino
+
      send_ms = currentMillis;
      Serial.println("Send");
   }
@@ -571,7 +532,18 @@ if((currentMillis - previousMillis_send > interval_send)  && (!send_flag)) {
 
 
 //Past here thar be code that hath been laid to rest
-
+/*
+ * 
+ * 
+ /*
+uint32_t REFERENCE = (uint32_t) 1 << 24;
+uint32_t D_REFERENCE = (REFERENCE/2);
+uint32_t FSS = 20;
+  * 
+  pressure_resolution_mask    = ~(((uint32_t) 1 << (FULL_SCALE_RESOLUTION - pressure_resolution)) - 1);
+  temperature_resolution_mask = ~(((uint32_t) 1 << (FULL_SCALE_RESOLUTION - TEMPERATURE_RESOLUTION)) - 1);
+  * 
+  */
 
 /* 
   if (i == 1 && inByte.startsWith("P")) {     //if first chars = P set pressure
