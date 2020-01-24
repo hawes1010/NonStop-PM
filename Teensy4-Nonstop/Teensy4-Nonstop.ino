@@ -146,8 +146,8 @@ void setup(){
     //pinMode(EOC, INPUT);    // sets the digital pin 7 as input
 //  analogWriteFrequency(20, 488); // pwm frequenc. default = 488.28
   //analogWriteResolution(12);     // default = 8 (255)
- Wire1.setSDA(17); //Pin 17 is SDA_1
- Wire1.setSCL(16); //Pin 16 is SCL_1
+ //Wire1.setSDA(17); //Pin 17 is SDA_1
+// Wire1.setSCL(16); //Pin 16 is SCL_1
   delay(50);
   Wire1.begin(); //use for PM pump********************************************************************************
 //>>>>>>> parent of 1b57faf... Update Teensy4-Nonstop.ino
@@ -191,31 +191,31 @@ Request_PS();
 read_PS();
 
 
- 
-  // read from the sensor and add into array
-    //Pre.addValue(analogRead(PrePin));
-  // advance to the next position in the array:
- /* average_P = PRES.getAverage();  
-  
-  if (nopid == 0){
-      if (digitalRead(inPin) == HIGH){
-      // Receive command to turn on pump
-        digitalWrite(StandbyPin, HIGH); 
-     //if (ShutDownCount == 0){Output = 5000; }
-        PIDMain();
-        ShutDownCount = 1; // Count shutdown
-     }
-   else{
-     // Turn off pump
-     if (ShutDownCount == 1){
-       PumpSlowShutDown();
-       ShutDownCount = 0;
-       myindex = 0;
-       initialize();   // reset PID
-     }
-   }
-  } 
-*/
+// 
+//  // read from the sensor and add into array
+//    //Pre.addValue(analogRead(PrePin));
+//  // advance to the next position in the array:
+//  average_P = PRES.getAverage();  
+//  
+//  if (nopid == 0){
+//      if (digitalRead(inPin) == HIGH){
+//      // Receive command to turn on pump
+//        digitalWrite(StandbyPin, HIGH); 
+//     //if (ShutDownCount == 0){Output = 5000; }
+//        PIDMain();
+//        ShutDownCount = 1; // Count shutdown
+//     }
+//   else{
+//     // Turn off pump
+//     if (ShutDownCount == 1){
+//       PumpSlowShutDown();
+//       ShutDownCount = 0;
+//       myindex = 0;
+//       initialize();   // reset PID
+//     }
+//   }
+//  } 
+
 }
 
 void initialize() {
@@ -384,9 +384,9 @@ int status7;
 
 byte ready_byte = 0;
 if(send_flag){
-Serial.println("read");
-Serial.print("EOC: ");
-Serial.println(digitalRead(EOC));
+//Serial.println("read");
+//Serial.print("EOC: ");
+//Serial.println(digitalRead(EOC));
 if(digitalRead(EOC)==1){
  //Serial.print("Wait bit is ");
  //Serial.println(bitRead(ready_byte,5));
@@ -396,7 +396,7 @@ if(digitalRead(EOC)==1){
 }
  
 
-if(/*(currentMillis - send_ms >= interval_read) && */(send_flag) & (Data_done)){
+if((send_flag) && (Data_done)){ /*(currentMillis - send_ms >= interval_read) && */
   Data_done = false;
  Serial.println("Reading");
   Wire1.requestFrom(41,7);
@@ -407,7 +407,7 @@ if(/*(currentMillis - send_ms >= interval_read) && */(send_flag) & (Data_done)){
     i++;
   }
   i = 0;
-   Serial.println("H2");
+  // Serial.println("H2");
  status_byte = data[0];
  pressure2 =   data[1];  //<< 16;
  pressure1  =  data[2];  //<< 8;
@@ -424,6 +424,7 @@ if(/*(currentMillis - send_ms >= interval_read) && */(send_flag) & (Data_done)){
 //Serial.print("Raw Pressure 1: "); // raw value is 10000000 << 8 which is 2^15 which is 32768
 //Serial.println(pressure1, BIN);
 Serial.print("Raw Pressure: ");
+mp &= 0x00ffffff;
 Serial.println(mp);
 
  float mt = 0;
@@ -439,7 +440,7 @@ Serial.println(mt);
 // pressure_read = (1.25*FSS*((pressure_read -D_REFERENCE)))*(1/REFERENCE);
   mp &= 0x00ffffff;
   //mp = (float)12.5*((mp/REFERENCE)-.5);
- // mp = ((1.25*FSS*((mp-D_REFERENCE)))/(REFERENCE));
+  mp = ((1.25*FSS*((mp-D_REFERENCE)))/(REFERENCE));
  temperature = temp2 + temp1 + temp0;
 // temperature = temperature & temperature_resolution_mask;
  
@@ -451,13 +452,13 @@ Serial.println(mt);
  //Serial.println("R");
 
 Serial.print("Pressure: ");
-
+/*
 Serial.print(data[1]);
 Serial.print(" ");
 Serial.print(data[2]);
 Serial.print(" ");
 Serial.println(data[3]);
-
+*/
 Serial.println(mp);
 //Serial.println(pressure_read);
 Serial.print("Temperature: ");
@@ -498,14 +499,14 @@ for (i = 0; i < 7; i++){
   }
 
 void Request_PS(){
- Serial.println("Request");
+ //Serial.println("Request");
 
 if (first_time == true){
- // delay(1000);
+  delay(1000);
   first_time = false;
 }
 
- // delay(1000);
+
 
 currentMillis = millis();
 if((currentMillis - previousMillis_send > interval_send)  && (!send_flag)) {
