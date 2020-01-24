@@ -6,6 +6,9 @@
 
   Version 2.1 
   -added I2C functions for the DLHR Sensor
+
+  Version 2.2 Beta 
+  -fixing PID that rises upwards infinitely
 */
 
 #include <math.h>
@@ -125,21 +128,23 @@ uint32_t temperature_resolution_mask = ~(((uint32_t) 1 << (RESOLUTION - TEMP_RES
 int period = 3000;
 int intervals = 3;
 
-float average_pres = 0;
-float average_temp = 0;
-int output_power = 0;
+double average_pres = 0;
+double average_temp = 0;
+double output_power = 0;
 
 PID myPID(&average_pres, &output_power, &Setpoint,3,3,.2, DIRECT); // BALDOR #2
  
 void setup(){
-  pinMode(EOC, INPUT);    // sets the digital pin 7 as input
+    pinMode(EOC, INPUT);    // sets the digital pin 7 as input
   analogWriteFrequency(20, 488); // pwm frequenc. default = 488.28
   analogWriteResolution(12);     // default = 8 (255)
   delay(50);
   Wire1.begin(); //use for PM pump********************************************************************************
+  
  // Wire.begin(8); // use foe VOC pump
  // Wire.onRequest(requestEvent); // register event for I2C with mainboard
   //Wire.onReceive(receiveEvent);
+  
   analogReadRes(13); // Set Teensy analog resolution to 13 bits
   pinMode(PWMPin, OUTPUT);    
   pinMode(PrePin, INPUT);
@@ -150,8 +155,8 @@ void setup(){
 
  //Clean up Average
 //Out.clear();
-// TEMP.clear();
- //PRES.clear();
+ TEMP.clear();
+ PRES.clear();
  
   //digitalWrite(StandbyPin, LOW);  // turn off pump 
   delay(50);
@@ -162,7 +167,7 @@ void setup(){
 
     
   //turn the PID on
-  myPID.SetOutputLimits(-8191, 8191);
+  myPID.SetOutputLimits(-16384, 16384); // This doesn't work unless this somehow 
   myPID.SetMode(AUTOMATIC);
   //EEPROM.put(200, 1002);  // !!!ONLY USE THE VERY FIRST TIME LOADING TEENSY!!!
   //EEPROM.put(100, 5000);  // !!!ONLY USE THE VERY FIRST TIME LOADING TEENSY!!!
@@ -174,13 +179,9 @@ Request_PS();
 read_PS();
 
 
- myPID.Compute()
+ 
   // read from the sensor and add into array
-<<<<<<< HEAD
     //Pre.addValue(analogRead(PrePin));
-=======
-  // Pre.addValue(analogRead(PrePin));
->>>>>>> a6278d4c29c078719a9805e22f2f72ec5ca13909
   // advance to the next position in the array:
   average_P = PRES.getAverage();  
   
@@ -225,10 +226,15 @@ void initialize() {
  // myPID.Initialize();
 }
 
+
+void avgPIDvalues(){
+
+  
+}
 void PumpSlowShutDown(){
 // Slowly shutdown the pump within 1 second
 
-  int countdown = 250;
+  int countdown = 50;
   while (countdown > 0){
     analogWrite(PWMPin,countdown);
     countdown = countdown-2;
@@ -242,25 +248,26 @@ void PIDMain(){                   // PID main function
   // Read the potentiometer reading as calibration
     EEPROM.get(100,SetPre);       //get stored pump control pressure
     PumpStatus = 1;
-  
+    PRES.getAverage();
+    TEMP.getAverage();
+    //PID myPID(&average_pres, &output_power, &Setpoint,3,3,.2, DIRECT); // BALDOR #2
       // advance to the next position in the array:  
       myindex = myindex + 1;                    
     
       // Update control after 1s     
         myindex = 0;         
         // Get the difference of sensor reading and set point
-        float input_avg = PRES.getAverage();
-     //   Input = average_P - SetPre;
-        Input = input_avg; 
+        //Old values==Input = average_P - SetPre;
+        average_pres = PRES.getAverage();
         // Calculate PID output
         myPID.Compute();
         // Obtain PID output:  
         Out.addValue(output_power);
         // Calculate output average
-        output_power  = Out.getAverage();
+        average_O = Out.getAverage();
         // Control pump power
-        analogWrite(PWMPin,min(output_power/32,MaxPower)); 
-        pumpspeed = PMax + (output_power/32);   
+        analogWrite(PWMPin,min(Output/32,MaxPower)); 
+        pumpspeed = PMax + (Output/32);   
         // Print out to the screen
         Serial.print(Output/32);
         Serial.print(',');
@@ -401,8 +408,8 @@ uint32_t FSS = 20;
  mp += (uint32_t)pressure0;
  mp += (uint32_t)(pressure1 << 8);
  mp += (uint32_t)(pressure2 << 16) ;
- Serial.print("Raw Pressure 1: "); // raw value is 10000000 << 8 which is 2^15 which is 32768
-Serial.println(pressure1, BIN);
+//Serial.print("Raw Pressure 1: "); // raw value is 10000000 << 8 which is 2^15 which is 32768
+//Serial.println(pressure1, BIN);
 Serial.print("Raw Pressure: ");
 Serial.println(mp);
 
@@ -436,25 +443,25 @@ Serial.println(mp);
 Serial.print("Temperature: ");
 Serial.println(mt);
 Input = mp;
+//add PID values;
 PRES.addValue(mp);
 TEMP.addValue(mt);
 /*
  * uint32_t pressure_read = 0;
  * uint32_t temperature = 0;
  */
-average_pres = PRES.getAverage();
-average_temp = TEMP.getAverage();
+
 
 for (i = 0; i < 7; i++){
     data[i] = 0;
     i++;
+    }
+    i = 0;
+ }
+
+    }
+
   }
-i = 0;
-}
-
-}
-
-}
 
 void Request_PS(){
  //Serial.println("Request");
@@ -482,18 +489,9 @@ if((currentMillis - previousMillis_send > interval_send)  && (!send_flag)) {
   }
   
 }
-const long sample_interval = 333;
-int sample_max = 3;
-long previous_sample = 0;
-boolean SamplePressure(){
- currentMillis = millis();
-if (currentMillis - previous_sample >= sample_interval) {
-   
-    previousMillis = currentMillis;
-  return true;
-}
-return false
-}
+
+
+
 
 
 
