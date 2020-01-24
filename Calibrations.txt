@@ -1,0 +1,12 @@
+Data stream for sensor #1// note I think this one got shot to peices by the old library.
+0.00,6815744.00,0,6815744.00,-512.00,0,0
+Raw Pressure: 241696768
+Raw Temp: 2155905024.00
+Pressure: 6815744
+Data Stream for sensor #2 // Note: this one is the one I calibrated for.  This seems Correct!
+Raw Pressure: 15502736
+Raw Temp: 1966080.00
+Pressure: 2950
+Temperature: 24.00
+30 0 128
+24.00
