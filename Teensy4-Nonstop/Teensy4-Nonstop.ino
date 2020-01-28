@@ -20,7 +20,7 @@
 //double Setpoint, Input, Output;
 double Input = 0.0;
 double Output = 0.0;
-double Setpoint = 0.0;
+double Setpoint = 18913174.0;
 String inByte = "";
 int i=0;
 int Bpress;
@@ -71,7 +71,7 @@ const int PWMPin = 20;          // PWM output to motor control board
 
 
 const int PreReadings = 1000;    // 1000 Average 5s pressure sensor for PID
-const int OutReadings = 5;      // 5 Average 5s PID output to control pump
+const int OutReadings = 10; //orginally 5     // 5 Average 5s PID output to control pump
 const int threeSAvg = 3;
 const int numReadings = 20;     // Average 20 pressure readings within 1s
 int PumpStatus = 0;            // Pump on/off (off = 0, on = 1)
@@ -189,32 +189,31 @@ void loop(){
 //Send is currently here as a test for I2C comms
 Request_PS();
 read_PS();
-
-
-// 
-//  // read from the sensor and add into array
-//    //Pre.addValue(analogRead(PrePin));
+ 
+  // read from the sensor and add into array
+   //Pre.addValue(analogRead(PrePin))  //Which pin is this Bill?
+   //Out.addValue(average_output)
 //  // advance to the next position in the array:
-//  average_P = PRES.getAverage();  
-//  
-//  if (nopid == 0){
-//      if (digitalRead(inPin) == HIGH){
-//      // Receive command to turn on pump
-//        digitalWrite(StandbyPin, HIGH); 
-//     //if (ShutDownCount == 0){Output = 5000; }
-//        PIDMain();
-//        ShutDownCount = 1; // Count shutdown
-//     }
-//   else{
-//     // Turn off pump
-//     if (ShutDownCount == 1){
-//       PumpSlowShutDown();
-//       ShutDownCount = 0;
-//       myindex = 0;
-//       initialize();   // reset PID
-//     }
-//   }
-//  } 
+  average_P = PRES.getAverage();  
+
+  if (nopid == 0){
+      if (digitalRead(inPin) == HIGH){
+     // Receive command to turn on pump
+       digitalWrite(StandbyPin, HIGH); 
+     if (ShutDownCount == 0){ average_output= 127; }
+            PIDMain();
+            ShutDownCount = 1; // Count shutdown
+     }
+   else{
+     // Turn off pump
+    if (ShutDownCount == 1){
+       PumpSlowShutDown();
+       ShutDownCount = 0;
+      myindex = 0;
+      initialize();   // reset PID
+     }
+   }
+  }
 
 }
 
@@ -238,11 +237,6 @@ void initialize() {
  // myPID.Initialize();
 }
 
-
-void avgPIDvalues(){
-
-  
-}
 void PumpSlowShutDown(){
 // Slowly shutdown the pump within 1 second
 
@@ -278,7 +272,7 @@ void PIDMain(){                   // PID main function
         // Calculate output average
         average_O = Out.getAverage();
         // Control pump power
-        analogWrite(PWMPin,min(Output/32,MaxPower)); 
+        analogWrite(PWMPin,output_power); 
         pumpspeed = PMax + (Output/32);   
         // Print out to the screen
         Serial.print(Output/32);
@@ -294,6 +288,8 @@ void PIDMain(){                   // PID main function
         Serial.print(pumpspeed);
         Serial.print(',');        
         Serial.println(myindex);
+        Serial.print("Temperature (C): ");
+        Serial.println(average_temp);
        
   delay(10);
 }
@@ -363,15 +359,6 @@ uint32_t pressure2= 0;
 uint32_t temp0= 0;
 uint32_t temp1= 0;
 uint32_t temp2= 0;
-//Serial.println("H");
-//uint8_t status0;
-//int status1;
-//int status2;
-//int status3;
-//int status4;
-//int status5;
-//int status6;
-//int status7;
 
 uint8_t status0;
 int status1;
