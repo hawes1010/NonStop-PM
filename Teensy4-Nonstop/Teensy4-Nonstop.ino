@@ -63,9 +63,9 @@ float pressure;
 const int PrePin = A7;          // Pressure sensor pin
 const int AdjustPin = A9;       // Potentiometer pin
 const int StandbyPin = 13;      // Motor board standby pin
-//const int inPin = 17;           // Read command from mainboard
+//const int inPin = 22;           // Read command from mainboard (was 17)
 const int EOC = 21;
-//const int SDAPin = 18;          // SDA pin for I2C
+//const int SDAPin = 18;          // SDA pin for I2C to main board
 //const int SCLPin = 19;          // SCL pin for I2C
 const int PWMPin = 20;          // PWM output to motor control board
 
@@ -197,10 +197,10 @@ read_PS();
   average_P = PRES.getAverage();  
 
   if (nopid == 0){
-      if (digitalRead(inPin) == HIGH){
+      if (/*digitalRead(inPin) == HIGH*/  true){
      // Receive command to turn on pump
        digitalWrite(StandbyPin, HIGH); 
-     if (ShutDownCount == 0){ average_output= 127; }
+     if (ShutDownCount == 0){ output_power= 127; }
             PIDMain();
             ShutDownCount = 1; // Count shutdown
      }
@@ -273,21 +273,23 @@ void PIDMain(){                   // PID main function
         average_O = Out.getAverage();
         // Control pump power
         analogWrite(PWMPin,output_power); 
-        pumpspeed = PMax + (Output/32);   
+       // pumpspeed = PMax + (Output/32);   
         // Print out to the screen
-        Serial.print(Output/32);
-        Serial.print(',');
-        Serial.print(Input);
-        Serial.print(',');
-        Serial.print(PMax);
-        Serial.print(',');
-        Serial.print(average_P);
-        Serial.print(',');
-        Serial.print(average_O/32);
-        Serial.print(',');
-        Serial.print(pumpspeed);
-        Serial.print(',');        
-        Serial.println(myindex);
+        Serial.print("Output Power(0-255): ");
+        Serial.print(output_power);
+        Serial.println(' ');
+        Serial.print("Output Power(0-255): ");
+        Serial.print(average_pres);
+//        Serial.print(',');
+//        Serial.print(PMax);
+//        Serial.print(',');
+//        Serial.print(average_P);
+//        Serial.print(',');
+//        Serial.print(average_O/32);
+//        Serial.print(',');
+//        Serial.print(pumpspeed);
+//        Serial.print(',');        
+        Serial.println(' ');
         Serial.print("Temperature (C): ");
         Serial.println(average_temp);
        
@@ -300,10 +302,10 @@ void requestEvent()  // function that executes whenever data is requested by mai
   Serial.println("Request");
   char PresArray[12];
   String str;
-  str = String(PumpStatus) + ',' + int(average_P) + ',' + int(pumpspeed);
+  str = String(PumpStatus) + ',' + int(average_pres) + ',' + int(output_power);
   str.toCharArray(PresArray,12);
   Wire.print(PresArray);
- //  Serial.println(PresArray);
+ //Serial.println(PresArray);
 }
 
 void receiveEvent(int howMany) {  //set pump control, bp pressures, and motor speed
