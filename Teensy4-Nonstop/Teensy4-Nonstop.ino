@@ -20,7 +20,7 @@
 //double Setpoint, Input, Output;
 double Input = 0.0;
 double Output = 0.0;
-double Setpoint = 18913174.0;  // 61% of max for output control
+double Setpoint = 18913174.0;  // 61% of max for output control (of 31005200)
 String inByte = "";
 int i=0;
 int Bpress;
@@ -278,7 +278,7 @@ void PIDMain(){                   // PID main function
         Serial.print("Output Power(0-255): ");
         Serial.print(output_power);
         Serial.println(' ');
-        Serial.print("Output Power(0-255): ");
+        Serial.print("Output Power(0-31005200): "); // 0 - 31005200
         Serial.print(average_pres);
 //        Serial.print(',');
 //        Serial.print(PMax);
