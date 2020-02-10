@@ -20,7 +20,7 @@
 //double Setpoint, Input, Output;
 double Input = 0.0;
 double Output = 0.0;
-double Setpoint = 18913174.0;
+double Setpoint = 18913174.0;  // 61% of max for output control
 String inByte = "";
 int i=0;
 int Bpress;
@@ -63,7 +63,7 @@ float pressure;
 const int PrePin = A7;          // Pressure sensor pin
 const int AdjustPin = A9;       // Potentiometer pin
 const int StandbyPin = 13;      // Motor board standby pin
-//const int inPin = 22;           // Read command from mainboard (was 17)
+//const int inPin = 22;           // Read command from mainboard (was 17) we need a new pin for the design @Bill
 const int EOC = 21;
 //const int SDAPin = 18;          // SDA pin for I2C to main board
 //const int SCLPin = 19;          // SCL pin for I2C
@@ -90,43 +90,43 @@ int pumpspeed = 0;
 unsigned long TimeCount = 0;    // counting time step
 
 //I2C Commands
-byte single_start = 0xAA;
-byte start_avg2 = 0xAC;
-byte start_avg4 = 0xAD;
-byte start_avg8 = 0xAE;
-byte start_avg16 = 0xAF;
+byte single_start = 0xAA;  //single measurement
+byte start_avg2 = 0xAC;  //2 averaged
+byte start_avg4 = 0xAD;  //4 " "
+byte start_avg8 = 0xAE; //8 " "
+byte start_avg16 = 0xAF; //16 " "
 
 //I2C address and sending info
-int PM_slave_addr = 0x29;
-boolean first_time = true;
+int PM_slave_addr = 0x29;  //address for Pressure sensor
+boolean first_time = true;  // timing variable to help startup
 
 //I2C 
-unsigned long currentMillis = 0;
+unsigned long currentMillis = 0;    // tracks time throughout program
 long previousMillis_send = 0;       // will store last time i2c data was sent to PS sensor
-long previousMillis_receive = 0;
-long interval_read = 65; 
-long interval_send = 65; 
-boolean send_flag = false;
-long send_ms = 0;
+long previousMillis_receive = 0;    // will store last time i2c data was received by PS Sensor
+long interval_read = 65;            // every 65 msec check to see if the 16 avg sensor is finished
+long interval_send = 65;            // every 65 msec check to see if the 16 avg sensor is finished
+boolean send_flag = false;          // make sure we don't send too many requests 
+long send_ms = 0;                   // track sending time
 //I2C values read from Sensors
- uint32_t pressure_read = 0;
- uint32_t temperature = 0;
-int status_byte = 0;
+ uint32_t pressure_read = 0;         // store pressure
+ uint32_t temperature = 0;           // store temp
+int status_byte = 0;                // status_byte for reading Pressure sensor
 
 //Sensor References 
-uint32_t REFERENCE =  1 << 16;
-uint32_t FULL_RES = 1 << 23;
-uint32_t D_REFERENCE = (uint32_t)(REFERENCE * 0.5);
-uint32_t RESOLUTION = 24;
-uint32_t SENSOR_RES = 18;
-uint32_t TEMP_RES = 16;
-uint32_t FSS = 10;
+uint32_t REFERENCE =  1 << 16;  // reference adc bits
+uint32_t FULL_RES = 1 << 23;   // full pressure sensor resolution (according to manual)
+uint32_t D_REFERENCE = (uint32_t)(REFERENCE * 0.5);  // Half reference for sensor resolution
+uint32_t RESOLUTION = 24;  // 24 bits of Full Resolution according to manual
+uint32_t SENSOR_RES = 18;  // 18 bits for our sensor pressure
+uint32_t TEMP_RES = 16;   // 16 bits for temperature
+uint32_t FSS = 10;        // Full scale measurements go to 10
 // Math Masks
-uint32_t pressure_resolution_mask    = ~(((uint32_t) 1 << (RESOLUTION - SENSOR_RES)) - 1);
-uint32_t temperature_resolution_mask = ~(((uint32_t) 1 << (RESOLUTION - TEMP_RES)) - 1);
+uint32_t pressure_resolution_mask    = ~(((uint32_t) 1 << (RESOLUTION - SENSOR_RES)) - 1);  // Mask for pressure
+uint32_t temperature_resolution_mask = ~(((uint32_t) 1 << (RESOLUTION - TEMP_RES)) - 1);    // mask for temperature
 // Timing Variables
-int period = 3000;
-int intervals = 3;
+int period = 1000;  // each second we should be requested or send the output data
+//int intervals = 3;  // placeholder for design decisions
 
 double average_pres = 0;
 double average_temp = 0;
