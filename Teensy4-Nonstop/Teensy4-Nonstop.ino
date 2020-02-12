@@ -201,7 +201,8 @@ read_PS(); // adds values to averages in this function
    */
 //  // advance to the next position in the array: this happens automatically in the library code for Running Average
   average_P = PRES.getAverage();  // calculate average again for the Pressure
-  average_T = TEMP.getAverage();
+  //average_pres = PRES.getAverage();  // calculate average again for the Pressure
+  average_temp = TEMP.getAverage();
   if (nopid == 0){
       if (/*digitalRead(inPin) == HIGH*/  true){
      // Receive command to turn on pump
@@ -520,4 +521,20 @@ if((currentMillis - previousMillis_send > interval_send)  && (!send_flag)) {
      Serial.println("Send");
   }
   
+}
+
+
+double aggKp=4, aggKi=0.2, aggKd=1;
+double consKp=1, consKi=0.05, consKd=0.25;
+void correct_pid(){
+ double gap = abs(Setpoint-Input); //distance away from setpoint
+  if(gap<10)
+  {  //we're close to setpoint, use conservative tuning parameters
+    myPID.SetTunings(consKp, consKi, consKd);
+  }
+  else
+  {
+     //we're far from setpoint, use aggressive tuning parameters
+     myPID.SetTunings(aggKp, aggKi, aggKd);
+  }
 }
