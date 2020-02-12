@@ -175,7 +175,7 @@ void setup(){
  
   //digitalWrite(StandbyPin, LOW);  // turn off pump 
   delay(50);
-  Serial.begin(115200);    //open Serial port
+  Serial.begin(115200);    //open Serial port for reading from teensy
   delay(100);
   
  
@@ -193,14 +193,15 @@ void setup(){
 void loop(){
 //Send is currently here as a test for I2C comms
 Request_PS();
-read_PS();
- 
+read_PS(); // adds values to averages in this function
+ /*
   // read from the sensor and add into array
-   //Pre.addValue(analogRead(PrePin))  //Which pin is this Bill?
+   //Pre.addValue(analogRead(PrePin))  //Which pin is this ??
    //Out.addValue(average_output)
-//  // advance to the next position in the array:
-  average_P = PRES.getAverage();  
-
+   */
+//  // advance to the next position in the array: this happens automatically in the library code for Running Average
+  average_P = PRES.getAverage();  // calculate average again for the Pressure
+  average_T = TEMP.getAverage();
   if (nopid == 0){
       if (/*digitalRead(inPin) == HIGH*/  true){
      // Receive command to turn on pump
@@ -238,7 +239,7 @@ void initialize() {
   PRES.clear();
   Input = 0.0;
   Output = 0.0;
-  Setpoint = 0.0;
+  Setpoint = 18913174.0;
  // myPID.Initialize();
 }
 
@@ -260,7 +261,7 @@ void PIDMain(){                   // PID main function
     EEPROM.get(100,SetPre);       //get stored pump control pressure
     PumpStatus = 1;
    // PRES.getAverage();
-   average_temp= TEMP.getAverage();
+   
     //PID myPID(&average_pres, &output_power, &Setpoint,3,3,.2, DIRECT); // BALDOR #2
       // advance to the next position in the array:  
       myindex = myindex + 1;                    
@@ -269,6 +270,7 @@ void PIDMain(){                   // PID main function
         myindex = 0;         
         // Get the difference of sensor reading and set point
         //Old values==Input = average_P - SetPre;
+        average_temp= TEMP.getAverage();
         average_pres = PRES.getAverage();
         // Calculate PID output
         myPID.Compute();
@@ -280,10 +282,10 @@ void PIDMain(){                   // PID main function
         analogWrite(PWMPin,output_power); 
        // pumpspeed = PMax + (Output/32);   
         // Print out to the screen
-        Serial.print("Output Power(0-255): ");
+        Serial.print("Output Power [PWM] (0-255): ");  // PWM 
         Serial.print(output_power);
         Serial.println(' ');
-        Serial.print("Output Power(0-31005200): "); // 0 - 31005200
+        Serial.print("Input Pressure (0-31005200): "); // 0 - 31005200
         Serial.print(average_pres);
 //        Serial.print(',');
 //        Serial.print(PMax);
@@ -504,7 +506,6 @@ if (first_time == true){
 
 currentMillis = millis();
 if((currentMillis - previousMillis_send > interval_send)  && (!send_flag)) {
-  //Serial.println("Send");
     // save the last time sent data
      send_flag = true;
     previousMillis_send = currentMillis;   
@@ -512,64 +513,11 @@ if((currentMillis - previousMillis_send > interval_send)  && (!send_flag)) {
     Wire1.beginTransmission(41);
     Wire1.write(start_avg16);
     Wire1.endTransmission();
-     send_flag = true;
+    
+     send_flag = true;  //mark we have a send that is currently waiting to be processed
 
      send_ms = currentMillis;
      Serial.println("Send");
   }
   
 }
-
-
-
-
-
-
-
-//Past here thar be code that hath been laid to rest
-/*
- * 
- * 
- /*
-uint32_t REFERENCE = (uint32_t) 1 << 24;
-uint32_t D_REFERENCE = (REFERENCE/2);
-uint32_t FSS = 20;
-  * 
-  pressure_resolution_mask    = ~(((uint32_t) 1 << (FULL_SCALE_RESOLUTION - pressure_resolution)) - 1);
-  temperature_resolution_mask = ~(((uint32_t) 1 << (FULL_SCALE_RESOLUTION - TEMPERATURE_RESOLUTION)) - 1);
-  * 
-  */
-
-/* 
-  if (i == 1 && inByte.startsWith("P")) {     //if first chars = P set pressure
-   initialize();   // reset PID
-   inByte = inByte.substring(1);
-   int Epress = inByte.toInt();
-   EEPROM.put(100, Epress);
-   delay(50);
-   SetPre = Epress;
-   nopid = 0;
-   i = 0;
-   inByte = "";
-  }
-  else if (i == 1 && inByte.startsWith("B")) {               //if first chars = B set bar pressure
-   inByte = inByte.substring(1);
-   int Bpress = inByte.toInt();
-   EEPROM.put(200, Bpress);
-   delay(50);
-   i = 0;
-   nopid = 0;
-   inByte = "";
-  } 
-  else if (i == 1 && inByte.startsWith("S")) {               //if first chars = S set motor speed
-   inByte = inByte.substring(1);
-   mspeed = inByte.toInt();
-   Serial.println(mspeed);
-   digitalWrite(StandbyPin, HIGH);  
-   analogWrite(PWMPin,mspeed);
-   pumpspeed = mspeed;   
-   nopid = 1;
-   i = 0;
-   inByte = "";
-  }     
-  */
