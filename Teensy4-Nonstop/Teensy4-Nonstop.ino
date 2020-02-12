@@ -17,6 +17,7 @@
 #include <Wire.h>
 #include "RunningAverage.h"
 
+#define FIRST_UPLOAD 0
 //double Setpoint, Input, Output;
 double Input = 0.0;
 double Output = 0.0;
@@ -131,8 +132,17 @@ int period = 1000;  // each second we should be requested or send the output dat
 double average_pres = 0;
 double average_temp = 0;
 double output_power = 0;
-
-PID myPID(&average_pres, &output_power, &Setpoint,3,3,.2, DIRECT); // BALDOR #2
+PID myPID(&average_pres, &output_power, &Setpoint,3,3,.2, DIRECT); // BALDOR #2:  
+/* PID notes
+ * INPUT == average_pres.  This is the thing our PID is controlling
+ * OUTPUT == output_power. This is used to control our Input and is changed by the PID
+ * Setpoint: Balue we want the input to maintain== 18913174.0
+ * Kp, Ki, Kd: Tuning Parameters. these affect how the pid will change the output. 
+ * Direction: Either DIRECT or REVERSE. determines which direction the output will move when faced with a given error. 
+ * Kp: Determines how aggressively the PID reacts to the current amount of error (Proportional) (double >=0)
+ * Ki: Determines how aggressively the PID reacts to error over time (Integral) (double>=0)
+ * Kd: Determines how aggressively the PID reacts to the change in error (Derivative) (double>=0)
+ */ 
  
 void setup(){
 
@@ -140,22 +150,15 @@ void setup(){
  
 //  analogWriteFrequency(20, 488); // pwm frequenc. default = 488.28
   //analogWriteResolution(12);     // default = 8 (255)
- // delay(50);
-  //Wire1.begin(); //use for PM pump********************************************************************************
-  
-    //pinMode(EOC, INPUT);    // sets the digital pin 7 as input
-//  analogWriteFrequency(20, 488); // pwm frequenc. default = 488.28
-  //analogWriteResolution(12);     // default = 8 (255)
- //Wire1.setSDA(17); //Pin 17 is SDA_1
-// Wire1.setSCL(16); //Pin 16 is SCL_1
+ 
   delay(50);
-  Wire1.begin(); //use for PM pump********************************************************************************
-//>>>>>>> parent of 1b57faf... Update Teensy4-Nonstop.ino
- // Wire.begin(8); // use foe VOC pump
- // Wire.onRequest(requestEvent); // register event for I2C with mainboard
+  Wire1.begin(); //use for PM pump**********
+  Wire.begin(8); // use foe VOC pump
+  Wire.onRequest(requestEvent); // register event for I2C with mainboard
   //Wire.onReceive(receiveEvent);
   
  // analogReadRes(13); // Set Teensy analog resolution to 13 bits
+  
   //pinMode(PWMPin, OUTPUT);    
  // pinMode(PrePin, INPUT);
  // pinMode(StandbyPin, OUTPUT);
@@ -179,10 +182,12 @@ void setup(){
 
     
   //turn the PID on
- // myPID.SetOutputLimits(-16384, 16384); // This doesn't work unless this somehow 
+ // myPID.SetOutputLimits(-16384, 16384); // This doesn't work unless this somehow can change PWM also (i dont think it can)
   //myPID.SetMode(AUTOMATIC);
-  //EEPROM.put(200, 1002);  // !!!ONLY USE THE VERY FIRST TIME LOADING TEENSY!!!
- // EEPROM.put(100, 5000);  // !!!ONLY USE THE VERY FIRST TIME LOADING TEENSY!!!
+  #if FIRST_UPLOAD
+  EEPROM.put(200, 1002);  // !!!ONLY USE THE VERY FIRST TIME LOADING TEENSY!!!  What value was this 
+  EEPROM.put(100, 18913174);  // !!!ONLY USE THE VERY FIRST TIME LOADING TEENSY!!!  Pressure?
+  #endif
 }
 
 void loop(){
