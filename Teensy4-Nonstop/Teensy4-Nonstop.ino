@@ -148,16 +148,15 @@ void setup(){
 
     pinMode(EOC, INPUT);    // sets the digital pin 21 as input]
  
-//  analogWriteFrequency(20, 488); // pwm frequenc. default = 488.28
-  //analogWriteResolution(12);     // default = 8 (255)
+
  
   delay(50);
   Wire1.begin(); //use for PM pump**********
   Wire.begin(8); // use foe VOC pump
   Wire.onRequest(requestEvent); // register event for I2C with mainboard
-  //Wire.onReceive(receiveEvent);
+  Wire.onReceive(receiveEvent);
   
- // analogReadRes(13); // Set Teensy analog resolution to 13 bits
+  analogReadRes(13); // Set Teensy analog resolution to 13 bits
   
   //pinMode(PWMPin, OUTPUT);    
  // pinMode(PrePin, INPUT);
@@ -179,15 +178,12 @@ void setup(){
   delay(100);
   
  
-
-    
-  //turn the PID on
- // myPID.SetOutputLimits(-16384, 16384); // This doesn't work unless this somehow can change PWM also (i dont think it can)
-  //myPID.SetMode(AUTOMATIC);
   #if FIRST_UPLOAD
   EEPROM.put(200, 1002);  // !!!ONLY USE THE VERY FIRST TIME LOADING TEENSY!!!  What value was this 
   EEPROM.put(100, 18913174);  // !!!ONLY USE THE VERY FIRST TIME LOADING TEENSY!!!  Pressure?
   #endif
+  //analogWriteFrequency(20, 488); // pwm frequenc. default = 488.28
+  //analogWriteResolution(12);     // default = 8 (255)
 }
 
 void loop(){
@@ -241,6 +237,8 @@ void initialize() {
   Input = 0.0;
   Output = 0.0;
   Setpoint = 18913174.0;
+  // 18913174
+  // 37826348
  // myPID.Initialize();
 }
 
@@ -310,7 +308,8 @@ void requestEvent()  // function that executes whenever data is requested by mai
   Serial.println("Request");
   char PresArray[12];
   String str;
-  str = String(PumpStatus) + ',' + int(average_pres) + ',' + int(output_power);
+  int new_p = shift_pressure(average_pres);
+  str = String(PumpStatus) + ',' + new_p + ',' + int(output_power);
   str.toCharArray(PresArray,12);
   Wire.print(PresArray);
  //Serial.println(PresArray);
@@ -498,12 +497,10 @@ for (i = 0; i < 7; i++){
 void Request_PS(){
  //Serial.println("Request");
 
-if (first_time == true){
+if (first_time == true){ // allow for startup
   delay(1000);
   first_time = false;
 }
-
-
 
 currentMillis = millis();
 if((currentMillis - previousMillis_send > interval_send)  && (!send_flag)) {
@@ -523,6 +520,13 @@ if((currentMillis - previousMillis_send > interval_send)  && (!send_flag)) {
   
 }
 
+int shift_pressure(double p){
+
+  // 18913174
+  // 37826348
+  double new_p = p/37826348;   //x1/y1 == x2/y2
+  int pressure_shifted = (int)new_p*8192;
+}
 
 double aggKp=4, aggKi=0.2, aggKd=1;
 double consKp=1, consKi=0.05, consKd=0.25;
