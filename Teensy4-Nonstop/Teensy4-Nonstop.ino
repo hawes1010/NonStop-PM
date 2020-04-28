@@ -309,7 +309,7 @@ void requestEvent()  // function that executes whenever data is requested by mai
   char PresArray[12];
   String str;
   int new_p = shift_pressure(average_pres);
-  str = String(PumpStatus) + ',' + new_p + ',' + int(output_power);
+  str = String(PumpStatus) + ',' + int(new_p) + ',' + int(output_power); //1+1+4+1+3
   str.toCharArray(PresArray,12);
   Wire.print(PresArray);
  //Serial.println(PresArray);
@@ -524,7 +524,7 @@ int shift_pressure(double p){
 
   // 18913174
   // 37826348
-  double new_p = p/37826348;   //x1/y1 == x2/y2
+  double new_p = p/1024;   //x1/y1 == x2/y2
   int pressure_shifted = (int)new_p*8192;
 }
 
