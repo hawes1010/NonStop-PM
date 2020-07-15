@@ -64,10 +64,10 @@ float pressure;
 const int PrePin = A7;          // Pressure sensor pin
 const int AdjustPin = A9;       // Potentiometer pin
 const int StandbyPin = 13;      // Motor board standby pin
-//const int inPin = 22;           // Read command from mainboard (was 17) we need a new pin for the design @Bill
+const int inPin = 22;           // Read command from mainboard (was 17) we need a new pin for the design @Bill
 const int EOC = 21;
-//const int SDAPin = 18;          // SDA pin for I2C to main board
-//const int SCLPin = 19;          // SCL pin for I2C
+const int SDAPin = 18;          // SDA pin for I2C to main board
+const int SCLPin = 19;          // SCL pin for I2C
 const int PWMPin = 20;          // PWM output to motor control board
 
 
@@ -146,11 +146,8 @@ PID myPID(&average_pres, &output_power, &Setpoint,3,3,.2, DIRECT); // BALDOR #2:
  
 void setup(){
 
-    pinMode(EOC, INPUT);    // sets the digital pin 21 as input]
- 
+  pinMode(EOC, INPUT);    // sets the digital pin 21 as input]
 
- 
-  delay(50);
   Wire1.begin(); //use for PM pump**********
   Wire.begin(8); // use foe VOC pump
   Wire.onRequest(requestEvent); // register event for I2C with mainboard
@@ -158,11 +155,11 @@ void setup(){
   
   analogReadRes(13); // Set Teensy analog resolution to 13 bits
   
-  //pinMode(PWMPin, OUTPUT);    
- // pinMode(PrePin, INPUT);
- // pinMode(StandbyPin, OUTPUT);
- // pinMode(inPin, INPUT);
- // digitalWrite(inPin,LOW);
+  pinMode(PWMPin, OUTPUT);    
+  pinMode(PrePin, INPUT);
+  pinMode(StandbyPin, OUTPUT);
+  pinMode(inPin, INPUT);
+  digitalWrite(inPin,LOW);
   //digitalWrite(0, HIGH);
  
 
@@ -172,7 +169,7 @@ void setup(){
  TEMP.clear();
  PRES.clear();
  
-  //digitalWrite(StandbyPin, LOW);  // turn off pump 
+  digitalWrite(StandbyPin, LOW);  // turn off pump 
   delay(50);
   Serial.begin(115200);    //open Serial port for reading from teensy
   delay(100);
@@ -309,7 +306,7 @@ void requestEvent()  // function that executes whenever data is requested by mai
   char PresArray[12];
   String str;
   int new_p = shift_pressure(average_pres);
-  str = String(PumpStatus) + ',' + int(new_p) + ',' + int(output_power); //1+1+4+1+3
+  str = String(PumpStatus) + ',' + int(new_p) + ',' + int(output_power); //1+1+4+1+3 // pressure needs to be 4 characters
   str.toCharArray(PresArray,12);
   Wire.print(PresArray);
  //Serial.println(PresArray);
