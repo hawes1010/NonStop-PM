@@ -52,10 +52,10 @@ float vout;
 float pressure;
 
 // Pin assignments
-const int PrePin = A7;          // Pressure sensor pin
-const int AdjustPin = A9;       // Potentiometer pin
+//const int PrePin = A7;          // Pressure sensor pin 21
+const int AdjustPin = A9;       // Potentiometer pin 
 const int StandbyPin = 13;      // Motor board standby pin
-const int inPin = 17;           // Read command from mainboard
+const int inPin = 14;           // Read command from mainboard
 //const int SDAPin = 18;          // SDA pin for I2C
 //const int SCLPin = 19;          // SCL pin for I2C
 const int PWMPin = 20;          // PWM output to motor control board
@@ -87,7 +87,7 @@ void setup(){
   Wire.onReceive(receiveEvent);
   analogReadRes(13); // Set Teensy analog resolution to 13 bits
   pinMode(PWMPin, OUTPUT);    
-  pinMode(PrePin, INPUT);
+  //pinMode(PrePin, INPUT);
   pinMode(StandbyPin, OUTPUT);
   pinMode(inPin, INPUT);
   digitalWrite(inPin,LOW);
@@ -110,14 +110,14 @@ void setup(){
 void loop(){
  // Serial.println("H");
         // read from the sensor and add into array
-      Pre.addValue(analogRead(PrePin));
+//      Pre.addValue(analogRead(PrePin));
       // advance to the next position in the array:
         average_P = Pre.getAverage();  
   
   if (nopid == 0){
-    //Serial.println("H");
+    Serial.println(digitalRead(inPin));
    if (digitalRead(inPin) == HIGH){
-     // Serial.println("InCommand");
+     Serial.println("InCommand");
      // Receive command to turn on pump
      digitalWrite(StandbyPin, HIGH); 
      //if (ShutDownCount == 0){Output = 5000; }
@@ -134,6 +134,7 @@ void loop(){
      }
    }
   } 
+  delay(50);
 }
 
 void initialize() {
@@ -152,7 +153,7 @@ void initialize() {
   Input = 0.0;
   Output = 0.0;
   Setpoint = 0.0;
-  myPID.Initialize();
+  //myPID.Initialize();
 }
 
 void PumpSlowShutDown(){
@@ -168,7 +169,7 @@ void PumpSlowShutDown(){
 }
 
 void PIDMain(){                   // PID main function
-  //Serial.println("H");
+  Serial.println("H1");
   // Read the potentiometer reading as calibration
     EEPROM.get(100,SetPre);       //get stored pump control pressure
     PumpStatus = 1;
@@ -209,18 +210,19 @@ void PIDMain(){                   // PID main function
 
 void requestEvent()  // function that executes whenever data is requested by main
 {
-  //Serial.println("H");
+  
+  Serial.println("H2");
   //Serial.println("Request");
   char PresArray[12];
   String str;
-  str = String(PumpStatus) + ',' + int(average_P) + ',' + int(pumpspeed);
+  str = String(PumpStatus) + ',' + int(100) + ',' + int(127);
   str.toCharArray(PresArray,12);
   Wire.print(PresArray);
  //  Serial.println(PresArray);
 }
 
 void receiveEvent(int howMany) {  //set pump control, bp pressures, and motor speed
-  //Serial.println("H");
+  Serial.println("receive");
   while (Wire.available() > 0) {
     char c = Wire.read();
     inByte += c;

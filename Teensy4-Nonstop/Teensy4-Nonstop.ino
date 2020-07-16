@@ -61,10 +61,10 @@ float pressure;
 
 
 // Pin assignments
-const int PrePin = A7;          // Pressure sensor pin
+//const int PrePin = A7;          // Pressure sensor pin
 const int AdjustPin = A9;       // Potentiometer pin
 const int StandbyPin = 13;      // Motor board standby pin
-const int inPin = 22;           // Read command from mainboard (was 17) we need a new pin for the design @Bill
+const int inPin = 14;           // Read command from mainboard (was 17) we need a new pin for the design @Bill
 const int EOC = 21;
 const int SDAPin = 18;          // SDA pin for I2C to main board
 const int SCLPin = 19;          // SCL pin for I2C
@@ -156,7 +156,7 @@ void setup(){
   analogReadRes(13); // Set Teensy analog resolution to 13 bits
   
   pinMode(PWMPin, OUTPUT);    
-  pinMode(PrePin, INPUT);
+  //pinMode(PrePin, INPUT);
   pinMode(StandbyPin, OUTPUT);
   pinMode(inPin, INPUT);
   digitalWrite(inPin,LOW);
@@ -176,8 +176,8 @@ void setup(){
   
  
   #if FIRST_UPLOAD
-  EEPROM.put(200, 1002);  // !!!ONLY USE THE VERY FIRST TIME LOADING TEENSY!!!  What value was this 
-  EEPROM.put(100, 18913174);  // !!!ONLY USE THE VERY FIRST TIME LOADING TEENSY!!!  Pressure?
+  //EEPROM.put(200, 1002);  // !!!ONLY USE THE VERY FIRST TIME LOADING TEENSY!!!  What value was this 
+  //EEPROM.put(100, 18913174);  // !!!ONLY USE THE VERY FIRST TIME LOADING TEENSY!!!  Pressure?
   #endif
   //analogWriteFrequency(20, 488); // pwm frequenc. default = 488.28
   //analogWriteResolution(12);     // default = 8 (255)
@@ -477,7 +477,7 @@ Serial.println(mt);
 //Serial.print("Status Byte: ");
 //Serial.println(data[0], HEX);
 PRES.addValue(pressure_read);
-TEMP.addValue(temperature);
+TEMP.addValue(mt);
 
 
 for (i = 0; i < 7; i++){
