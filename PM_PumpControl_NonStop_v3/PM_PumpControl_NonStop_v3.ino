@@ -53,7 +53,7 @@ float pressure;
 
 // Pin assignments
 //const int PrePin = A7;          // Pressure sensor pin 21
-const int AdjustPin = A9;       // Potentiometer pin 
+//const int AdjustPin = A9;       // Potentiometer pin 
 const int StandbyPin = 13;      // Motor board standby pin
 const int inPin = 14;           // Read command from mainboard
 //const int SDAPin = 18;          // SDA pin for I2C
@@ -66,7 +66,8 @@ const int numReadings = 20;     // Average 20 pressure readings within 1s
 int PumpStatus = 0;            // Pump on/off (off = 0, on = 1)
 byte PumpUnload = 1;            // Unloaded = 1, fully load = 0
 byte ShutDownCount = 0;         // Shut down pump slowly after command
-int myindex = 0;                // the index of the current reading
+int myindex = 0;               
+// the index of the current reading
 
 
 RunningAverage Pre(PreReadings);// the readings from the analog input
