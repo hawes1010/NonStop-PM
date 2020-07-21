@@ -62,12 +62,12 @@ float pressure;
 
 // Pin assignments
 //const int PrePin = A7;          // Pressure sensor pin
-const int AdjustPin = A9;       // Potentiometer pin
+//const int AdjustPin = A9;       // Potentiometer pin
 const int StandbyPin = 13;      // Motor board standby pin
 const int inPin = 14;           // Read command from mainboard (was 17) we need a new pin for the design @Bill
 const int EOC = 21;
-const int SDAPin = 18;          // SDA pin for I2C to main board
-const int SCLPin = 19;          // SCL pin for I2C
+//const int SDAPin = 18;          // SDA pin for I2C to main board
+//const int SCLPin = 19;          // SCL pin for I2C
 const int PWMPin = 20;          // PWM output to motor control board
 
 
@@ -153,7 +153,7 @@ void setup(){
   Wire.onRequest(requestEvent); // register event for I2C with mainboard
   Wire.onReceive(receiveEvent);
   
-  analogReadRes(13); // Set Teensy analog resolution to 13 bits
+  //analogReadRes(13); // Set Teensy analog resolution to 13 bits
   
   pinMode(PWMPin, OUTPUT);    
   //pinMode(PrePin, INPUT);
@@ -197,7 +197,8 @@ read_PS(); // adds values to averages in this function
   //average_pres = PRES.getAverage();  // calculate average again for the Pressure
   average_temp = TEMP.getAverage();
   if (nopid == 0){
-      if (/*digitalRead(inPin) == HIGH*/  true){
+   // Serial.println("H");
+      if (digitalRead(inPin) == HIGH){
      // Receive command to turn on pump
        digitalWrite(StandbyPin, HIGH); 
      if (ShutDownCount == 0){ output_power= 127; }
@@ -212,9 +213,9 @@ read_PS(); // adds values to averages in this function
       myindex = 0;
       initialize();   // reset PID
      }
-   }
+   }*
   }
-
+delay(500);
 }
 
 void initialize() {
@@ -235,7 +236,7 @@ void initialize() {
   Output = 0.0;
   Setpoint = 18913174.0;
   // 18913174
-  // 37826348
+  // 37826348 / 3784 will give me 9999
  // myPID.Initialize();
 }
 
@@ -306,14 +307,14 @@ void requestEvent()  // function that executes whenever data is requested by mai
   char PresArray[12];
   String str;
   int new_p = shift_pressure(average_pres);
-  str = String(PumpStatus) + ',' + int(new_p) + ',' + int(output_power); //1+1+4+1+3 // pressure needs to be 4 characters
+  str = String(PumpStatus) + ',' + int(333) + ',' + int(222); //1+1+4+1+3 // pressure needs to be 4 characters
   str.toCharArray(PresArray,12);
   Wire.print(PresArray);
  //Serial.println(PresArray);
 }
 
 void receiveEvent(int howMany) {  //set pump control, bp pressures, and motor speed
-  //Serial.println("H");
+  Serial.println("Hrec");
   while (Wire.available() > 0) {
     char c = Wire.read();
     inByte += c;
