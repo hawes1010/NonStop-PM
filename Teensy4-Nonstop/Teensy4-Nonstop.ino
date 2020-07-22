@@ -64,7 +64,7 @@ float pressure;
 //const int PrePin = A7;          // Pressure sensor pin 21 NOPE
 const int AdjustPin = A9;       // Potentiometer pin 23
 const int StandbyPin = 13;      // Motor board standby pin
-const int inPin = 22;           // Read command from mainboard (was 17) we need a new pin for the design @Bill
+const int inPin = 14;           // Read command from mainboard (was 17) we need a new pin for the design @Bill
 const int EOC = 21;
 //const int SDAPin = 18;          // SDA pin for I2C to main board
 //const int SCLPin = 19;          // SCL pin for I2C
@@ -153,7 +153,7 @@ void setup(){
   Wire.onRequest(requestEvent); // register event for I2C with mainboard
   Wire.onReceive(receiveEvent);
   
-  analogReadRes(13); // Set Teensy analog resolution to 13 bits
+  //analogReadRes(13); // Set Teensy analog resolution to 13 bits
   
   pinMode(PWMPin, OUTPUT);    
   //pinMode(PrePin, INPUT);
@@ -176,8 +176,8 @@ void setup(){
   
  
   #if FIRST_UPLOAD
-  EEPROM.put(200, 1002);  // !!!ONLY USE THE VERY FIRST TIME LOADING TEENSY!!!  What value was this 
-  EEPROM.put(100, 18913174);  // !!!ONLY USE THE VERY FIRST TIME LOADING TEENSY!!!  Pressure?
+  //EEPROM.put(200, 1002);  // !!!ONLY USE THE VERY FIRST TIME LOADING TEENSY!!!  What value was this 
+  //EEPROM.put(100, 18913174);  // !!!ONLY USE THE VERY FIRST TIME LOADING TEENSY!!!  Pressure?
   #endif
   //analogWriteFrequency(20, 488); // pwm frequenc. default = 488.28
   //analogWriteResolution(12);     // default = 8 (255)
@@ -212,9 +212,9 @@ read_PS(); // adds values to averages in this function
       myindex = 0;
       initialize();   // reset PID
      }
-   }
+   }*
   }
-
+delay(500);
 }
 
 void initialize() {
@@ -235,7 +235,7 @@ void initialize() {
   Output = 0.0;
   Setpoint = 18913174.0;
   // 18913174
-  // 37826348
+  // 37826348 / 3784 will give me 9999
  // myPID.Initialize();
 }
 
@@ -319,7 +319,7 @@ Output Power [PWM] (0-255): 127.00
 }
 
 void receiveEvent(int howMany) {  //set pump control, bp pressures, and motor speed
-  //Serial.println("H");
+  Serial.println("Hrec");
   while (Wire.available() > 0) {
     char c = Wire.read();
     inByte += c;
