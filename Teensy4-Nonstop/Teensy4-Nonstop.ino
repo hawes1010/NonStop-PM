@@ -61,13 +61,13 @@ float pressure;
 
 
 // Pin assignments
-const int PrePin = A7;          // Pressure sensor pin
-const int AdjustPin = A9;       // Potentiometer pin
+//const int PrePin = A7;          // Pressure sensor pin 21 NOPE
+const int AdjustPin = A9;       // Potentiometer pin 23
 const int StandbyPin = 13;      // Motor board standby pin
 const int inPin = 22;           // Read command from mainboard (was 17) we need a new pin for the design @Bill
 const int EOC = 21;
-const int SDAPin = 18;          // SDA pin for I2C to main board
-const int SCLPin = 19;          // SCL pin for I2C
+//const int SDAPin = 18;          // SDA pin for I2C to main board
+//const int SCLPin = 19;          // SCL pin for I2C
 const int PWMPin = 20;          // PWM output to motor control board
 
 
@@ -156,7 +156,7 @@ void setup(){
   analogReadRes(13); // Set Teensy analog resolution to 13 bits
   
   pinMode(PWMPin, OUTPUT);    
-  pinMode(PrePin, INPUT);
+  //pinMode(PrePin, INPUT);
   pinMode(StandbyPin, OUTPUT);
   pinMode(inPin, INPUT);
   digitalWrite(inPin,LOW);
@@ -197,10 +197,10 @@ read_PS(); // adds values to averages in this function
   //average_pres = PRES.getAverage();  // calculate average again for the Pressure
   average_temp = TEMP.getAverage();
   if (nopid == 0){
-      if (/*digitalRead(inPin) == HIGH*/  true){
+      if (digitalRead(inPin) == HIGH){
      // Receive command to turn on pump
        digitalWrite(StandbyPin, HIGH); 
-     if (ShutDownCount == 0){ output_power= 127; }
+    // if (ShutDownCount == 0){ output_power= 127; }
             PIDMain();
             ShutDownCount = 1; // Count shutdown
      }
@@ -301,12 +301,18 @@ void PIDMain(){                   // PID main function
 
 void requestEvent()  // function that executes whenever data is requested by main
 {
-
+/*
+Input Pressure (0-31005200): 49158.50 
+Temperature (C): 1077968666.90
+Output Power [PWM] (0-255): 127.00 
+ * 
+ */
   Serial.println("Request");
   char PresArray[12];
   String str;
   int new_p = shift_pressure(average_pres);
-  str = String(PumpStatus) + ',' + int(new_p) + ',' + int(output_power); //1+1+4+1+3 // pressure needs to be 4 characters
+  //str = String(PumpStatus) + ',' + int(new_p) + ',' + int(output_power); //1+1+4+1+3 // pressure needs to be 4 characters
+  str = String(PumpStatus) + ',' + int(1000) + ',' + int(127); //1+1+4+1+3 // pressure needs to be 4 characters
   str.toCharArray(PresArray,12);
   Wire.print(PresArray);
  //Serial.println(PresArray);
@@ -477,7 +483,7 @@ Serial.println(mt);
 //Serial.print("Status Byte: ");
 //Serial.println(data[0], HEX);
 PRES.addValue(pressure_read);
-TEMP.addValue(temperature);
+TEMP.addValue(mt);
 
 
 for (i = 0; i < 7; i++){
