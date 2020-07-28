@@ -1,3 +1,5 @@
+//#include <Adafruit_Sensor.h>
+
 // This code is used for the Kolibri onboard Teensy 3.2
 // The main purpose is to log and transfer sensor data
 // Version 5: Rewritten for the Teensy 3.1 chip, BMP180 sensor, and HiVol blower
@@ -237,6 +239,7 @@ boolean pumpthree = false;  //!!!!!!!!!!!!!!!make true to enable pump3 !!!!!!
 
 //------------------------------------------------------------------------------------------------
 //------------------------------------------------------------------------------------------------
+int sd_succ = 0;
 void setup() {
   Wire.begin();
   setSyncProvider(getTeensy3Time); // Call Teensy RTC subroutine
@@ -302,10 +305,14 @@ void setup() {
   // see if the card is present and can be initialized:
   if (!SD.begin()) {
     Serial.println("Card failed, or not present");
+    Serial.println("Card failed, ree");
     // don't do anything more:
     return;
   }
+  else{
   Serial.println("card initialized.");
+  sd_succ = 1;
+  }
   //end SD card init
 
   // initialize all the readings to zero --------------------------------------------------------
@@ -320,7 +327,8 @@ void setup() {
 //------------------------------------------------------------------------------------------------
 //------------------------------------------------------------------------------------------------
 void loop() {
-
+   Serial.print("start_loop: ");
+   Serial.println(sd_succ++);
    // GPS time, coordinate, and altitude
     while(GPSSerial.available() > 0)  //Loop until you have a good NMEA sentence
      if (gps.encode(Serial2.read()))
@@ -675,26 +683,36 @@ void loop() {
 // BEGIN READING PUMPS *************************************************
 
   if (pumpone == true){
+    Serial.print("P1Char: ");
    Wire.requestFrom(8,12);    // request 12 bytes from pump1
+   delay(50);
     while (Wire.available() > 0){   // slave may send less than requested      
        P1Char = Wire.read();
-       //Serial.println(p);
+       Serial.println(P1Char);
        P1Byte = P1Byte + P1Char;         
-    }            
-     //Serial.print(P1Byte);
+    }
+    Serial.print("P1Byte: ");           
+     Serial.println(P1Byte);
       int P1commaIndex = P1Byte.indexOf(','); 
+      Serial.println("Not dead_01");   
       int P1secondCommaIndex = P1Byte.indexOf(',', P1commaIndex+1);
+           Serial.println("Not dead_02");   
+      Serial.println(P1Byte.substring(0, P1commaIndex));
       String P1firstValue = P1Byte.substring(0, P1commaIndex);
+      Serial.println("Not dead_1");   
       String P1secondValue = P1Byte.substring(P1commaIndex+1, P1secondCommaIndex);
+      Serial.println("Not dead_2");    
       String P1thirdValue = P1Byte.substring(P1secondCommaIndex+1);
-           
+       Serial.println("Not dead_3");    
       PMP1Stat = P1firstValue.toInt();
       P1Pres = P1secondValue.toInt();
       Pmp1Speed = P1thirdValue.toInt();
+      
  //     Serial.print(P1Byte);
       P1Byte="";
+        
   }
-  
+    
   if (pumptwo == true){         
    Wire.requestFrom(4,12);    // request 12 bytes from pump2
     while (Wire.available() > 0){   // slave may send less than requested      
@@ -713,6 +731,7 @@ void loop() {
       Pmp2Speed = P2thirdValue.toInt();
       P2Byte="";
   }
+    Serial.println("Not dead_3");
 
   if (pumpthree == true){  
    Wire.requestFrom(2,12);    // request 12 bytes from pump3
@@ -845,6 +864,7 @@ void loop() {
     oldsec = second(); // restart timer
 
     // Datalogging
+      Serial.println("Not dead_5");
     logger();
 
   }
@@ -890,6 +910,7 @@ unsigned long getValue(byte packet[])
 // logging data
 void logger()
 {
+  Serial.println("WRITING");
   //Begin Write data to file *************************************
   // open file. note that only one file can be open at a time,
   // so you have to close this one before opening another.
