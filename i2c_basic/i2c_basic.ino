@@ -10,7 +10,9 @@ void setup() {
 }
 
 void loop() {
-  // put your main code here, to run repeatedly:
+  //Serial.println("I am alive");
+  //delay(5000);
+  delay(100);
 
 }
 
@@ -19,18 +21,24 @@ void requestEvent()  // function that executes whenever data is requested by mai
  
   Serial.println("H2");
   //Serial.println("Request");
-  char PresArray[] = "1,1000,127";
+  //char PresArray[] = "1,1000,127";
   int i = 0;
   //String str;
   //str = "1,1000,127";
   //str.toCharArray(PresArray,12);
-  for (i =0;i <13;i++)
-  Wire.print(PresArray[i]);
- //  Serial.println(PresArray);
+  
+  //for (i =0;i <10;i++)
+  //Wire.print(PresArray[i]);
+  Wire.print("eeeeeeee");
+  
+ Serial.println("MUDA!");
 }
 
 
 
-void receiveEvent(int howMany) {  //set pump control, bp pressures, and motor speed
-  Serial.println(Wire.read()+"a");
+void receiveEvent() {  //set pump control, bp pressures, and motor speed
+  while(Wire.available() > 0) {  // loop through all but the last
+    char c = Wire.read();        // receive byte as a character
+    Serial.print(c);             // print the character
+  }
 }
