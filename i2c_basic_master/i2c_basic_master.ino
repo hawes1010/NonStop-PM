@@ -17,15 +17,15 @@ void loop() {
   if(Wire.available()>0) {
     data = Wire.read();
     Serial.print("Im trying, see: ");
-     Serial.println("data is " + data);
+    Serial.println("data is " + data);
   }
- /* else{
+  else{
     Serial.println("send");
   Wire.beginTransmission(8);
   Wire.write("b");    // address high byte
   Wire.endTransmission();
   }
- */
+ 
   
  
 }
