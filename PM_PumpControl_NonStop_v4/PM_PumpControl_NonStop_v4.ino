@@ -244,9 +244,8 @@ void PIDMain(){                   // PID main function
   delay(10);
 }
 
-void requestEvent()  // function that executes whenever data is requested by main
+void requestEvent()  // function that executes whenever data is requested by main.  Sends data to the master teensy (This is the slave teensy)
 {
-
   Serial.println("Request");
   char PresArray[12];
   String str;
@@ -325,11 +324,11 @@ if(/*(currentMillis - send_ms >= interval_read) && */(send_flag) & (Data_done)){
     data[i] = Wire1.receive();
     i++;
   }
-  status_byte = data[0];
-  pressure2= data[1] << 16;
+  status_byte = data[0];  //first character read in is a status for functionality (tells you if its broken)
+  pressure2= data[1] << 16;  // create pressure array
  pressure1= data[2] << 8;
  pressure0= data[3];
- temp0= data[4] << 16;
+ temp0= data[4] << 16;  // create temperature array
  temp1= data[5] << 8;
  temp2= data[6];
  pressure_read = pressure2 + pressure1 + pressure0;
